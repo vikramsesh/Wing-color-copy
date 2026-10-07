@@ -2,7 +2,7 @@
 
 Browse the 180 core-set Wingspan birds by color. Each bird's palette is taken from the bird only (perches, paper and signatures are ignored), with a heat map of where each color sits, color names, editable palettes, and similar-bird matching within the same color family.
 
-**Live site:** https://vikramsesh.github.io/Wing-color-copy/
+**Live site:** https://vikramsesh.github.io/Wing-color-copy/ (artist originals) · [digital game art](https://vikramsesh.github.io/Wing-color-copy/?set=digital)
 
 ## Card art is password protected
 
@@ -12,6 +12,7 @@ The bird illustrations belong to their artists, Natalia Rojas and Ana María Mar
 
 - Card data: [Wingsearch](https://github.com/navarog/wingsearch) (GPLv3), downloaded at build time.
 - Card art: [Natalia Rojas](https://www.nataliarojasart.com/portfolio/wingspan-base), [Ana María Martínez Jaramillo](https://www.anammartinez.com/wingspanbasegame). Wingspan © Stonemaier Games.
+- Digital-edition card art (`?set=digital`): cropped from the screenshots in [ungeni's Steam guide](https://steamcommunity.com/sharedfiles/filedetails/?id=2690214466).
 - Layout inspired by [Wingsearch](https://navarog.github.io/wingsearch/).
 
 ## Rebuilding
