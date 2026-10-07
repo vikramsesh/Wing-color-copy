@@ -23,6 +23,10 @@
   .hero img { position: absolute; left: -60px; top: -10px; height: 520px; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
   .hero h1 { position: relative; margin: 0 0 20px; text-align: center; font: 700 clamp(48px, 9vw, 104px)/1 var(--hand); letter-spacing: .06em; color: #fff; text-shadow: 0 2px 8px rgb(0 60 60 / .15); }
   .search { position: relative; max-width: 620px; margin: auto; background: var(--paper); border-radius: 6px; box-shadow: 0 6px 24px rgb(0 50 60 / .18); padding: 14px 16px; }
+  .sets { display: flex; gap: 4px; margin: -4px 0 8px; }
+  .sets a { flex: 1; text-align: center; padding: 4px 8px; border-radius: 4px; color: var(--muted); text-decoration: none; font: 700 20px var(--hand); border: 1px solid transparent; }
+  .sets a:hover { border-color: var(--line); }
+  .sets a[aria-current] { background: var(--ink); color: #fff; }
   .searchrow { display: flex; align-items: center; gap: 14px; }
   .searchrow input { flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--muted); background: none; font: inherit; font-size: 16px; padding: 6px 2px; outline: none; }
   .searchrow input:focus { border-bottom-color: var(--accent); }
@@ -132,6 +136,7 @@
   <img id="heroimg" alt="" hidden>
   <h1>Wingspan Palettes</h1>
   <div class="search" id="search">
+    <nav class="sets" aria-label="Image set"><a href="./" data-set="art">Artist originals</a><a href="?set=digital" data-set="digital">Digital game</a></nav>
     <div class="searchrow">
       <input id="q" type="search" placeholder="Search birds" aria-label="Search birds by name">
       <div class="count"><span id="shown">180</span><small>birds shown</small></div>
@@ -168,6 +173,10 @@
 <script src="birds.js"></script>
 <script>
   const $ = id => document.getElementById(id);
+  // Two image sets, same features: the artists' originals (default) or the digital edition's cards (?set=digital).
+  const SET = new URLSearchParams(location.search).get('set') === 'digital' ? 'digital' : 'art';
+  if (SET === 'digital') BIRDS.forEach(b => b.art = b.digital && { ...b.digital, artist: 'Wingspan digital edition (Steam guide by ungeni)', site: 'https://steamcommunity.com/sharedfiles/filedetails/?id=2690214466' });
+  document.querySelectorAll('.sets a').forEach(a => a.toggleAttribute('aria-current', a.dataset.set === SET));
   const grid = $('grid'), q = $('q'), dlg = $('dlg');
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const HAB = { Forest: '🌲', Grassland: '🌾', Wetland: '💧' };
@@ -215,8 +224,9 @@
 
   // ---------- palettes + your edits (removed / added colors, saved in this browser) ----------
   let edits = {};
-  try { edits = JSON.parse(localStorage.getItem('edits')) || {}; } catch {}
-  const save = () => { try { localStorage.setItem('edits', JSON.stringify(edits)); } catch {} };
+  const EDITS = SET === 'art' ? 'edits' : 'edits-' + SET;  // each image set keeps its own palette edits
+  try { edits = JSON.parse(localStorage.getItem(EDITS)) || {}; } catch {}
+  const save = () => { try { localStorage.setItem(EDITS, JSON.stringify(edits)); } catch {} };
   const editOf = b => edits[b.sci] ||= { removed: [], added: [] };
   function pal(b) {
     if (!b.art) return [];

@@ -33,7 +33,11 @@ def bird_mask(img):
         logits = model(**inputs).logits  # (prompts, 352, 352)
     up = torch.nn.functional.interpolate(logits[:, None], size=img.size[::-1], mode="bilinear")[:, 0]
     mask = (up.argmax(0) == 0) & (up[0].sigmoid() > 0.3)
-    return mask.numpy() & (np.asarray(img).min(axis=2) < 235)
+    px = np.asarray(img).astype(int)
+    border = np.concatenate([px[:4].reshape(-1, 3), px[-4:].reshape(-1, 3), px[:, :4].reshape(-1, 3), px[:, -4:].reshape(-1, 3)])
+    paper = np.median(border, axis=0)  # white for the artists' scans, cream for the digital cards
+    not_paper = np.sqrt(((px - paper) ** 2).sum(axis=2)) > 40
+    return mask.numpy() & (px.min(axis=2) < 235) & not_paper
 
 
 def palette_from_pixels(pixels, n=6):
@@ -68,6 +72,20 @@ def art_for(name, uri, artist, site):
     pixels = np.asarray(img)[bird_mask(img)]
     sample = pixels[::max(1, len(pixels) // 40000)].tolist()
     return {"artist": artist, "site": site, "image": path, "palette": palette_from_pixels([tuple(p) for p in sample])}
+
+
+def digital_for(name, shot, left, top, shots):
+    """Crop one card's art out of a Steam screenshot of the digital edition, then palette it like the artists' art."""
+    os.makedirs("art/steam", exist_ok=True)
+    src = "art/steam/%02d.jpg" % shot
+    if not os.path.exists(src):
+        urllib.request.urlretrieve(shots[shot], src)
+    path = "art/d-" + norm(name) + ".jpg"
+    if not os.path.exists(path):
+        Image.open(src).convert("RGB").crop((left + 15, top + 55, left + 322, top + 330)).save(path, quality=92)
+    img = Image.open(path).convert("RGB")
+    pixels = np.asarray(img)[bird_mask(img)]
+    return {"image": path, "palette": palette_from_pixels([tuple(p) for p in pixels.tolist()])}
 
 
 def encrypt_art(password):
@@ -106,9 +124,13 @@ def norm(s):
 if __name__ == "__main__":
     os.makedirs("art", exist_ok=True)
     try:
-        old = {b["sci"]: b.get("art") for b in json.loads(open("birds.js", encoding="utf-8").read()[len("const BIRDS = "):-2])}
+        prev = json.loads(open("birds.js", encoding="utf-8").read()[len("const BIRDS = "):-2])
     except FileNotFoundError:
-        old = {}
+        prev = []
+    old = {b["sci"]: b.get("art") for b in prev}
+    old_digital = {b["sci"]: b.get("digital") for b in prev}
+    steam = json.load(open("data/steam.json", encoding="utf-8"))
+    digital = {norm(n): (s, l, t) for n, s, l, t in steam["cards"]}
     art = {}
     for artist, info in json.load(open("data/art.json", encoding="utf-8")).items():
         for uri, name in info["items"]:
@@ -126,8 +148,10 @@ if __name__ == "__main__":
             "power": card["Power text"], "color": card["Color"], "eggs": int(card["Egg limit"] or 0), "flavor": card["Flavor text"],
             "habitats": [h for h in HABITATS if card[h]],
             "food": {f.replace(" (food)", ""): int(card[f]) for f in FOODS if card[f]},
-            "art": None,
+            "art": None, "digital": None,
         }
+        if norm(name) in digital:
+            bird["digital"] = old_digital.get(sci) or digital_for(name, *digital[norm(name)], steam["shots"])
         if norm(name) in art:
             uri, artist, site = art[norm(name)]
             bird["art"] = old.get(sci) or art_for(name, uri, artist, site)
@@ -135,7 +159,7 @@ if __name__ == "__main__":
     birds.sort(key=lambda b: b["name"])
     with open("birds.js", "w", encoding="utf-8") as f:
         f.write("const BIRDS = " + json.dumps(birds, ensure_ascii=False) + ";\n")
-    print(len(birds), "birds,", sum(1 for b in birds if b["art"]), "with card art")
+    print(len(birds), "birds,", sum(1 for b in birds if b["art"]), "with card art,", sum(1 for b in birds if b["digital"]), "with digital art")
     if os.environ.get("WINGSPAN_PASSWORD"):
         encrypt_art(os.environ["WINGSPAN_PASSWORD"])
     else:
