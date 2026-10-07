@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wingspan Bird Palettes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Cabin+Condensed:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout modelled on Wingsearch (navarog.github.io/wingsearch): sky header, floating search card, card grid, two-panel detail. */
+  :root {
+    --sky: #a9dcd6; --sky2: #d9f0ec; --paper: #f7f3ea; --ink: #2d2a26; --muted: #7a7266; --line: #d9d1c2;
+    --brown: #b5662c; --pink: #e7a7b6; --white: #f1ece2; --panel: #cfe7ee; --panel-line: #7fb1c0; --accent: #b5662c;
+    --hand: 'Amatic SC', 'Comic Sans MS', cursive; --cond: 'Cabin Condensed', 'Arial Narrow', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; color: var(--ink); font: 15px/1.35 var(--cond); background: linear-gradient(180deg, var(--sky) 0, var(--sky2) 520px, #eef6f3 100%) fixed; min-height: 100vh; }
+  button { font: inherit; color: inherit; }
+
+  /* ---------- header ---------- */
+  .hero { position: relative; padding: 40px 16px 24px; overflow: hidden; }
+  .hero img { position: absolute; left: -60px; top: -10px; height: 520px; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
+  .hero h1 { position: relative; margin: 0 0 20px; text-align: center; font: 700 clamp(48px, 9vw, 104px)/1 var(--hand); letter-spacing: .06em; color: #fff; text-shadow: 0 2px 8px rgb(0 60 60 / .15); }
+  .search { position: relative; max-width: 620px; margin: auto; background: var(--paper); border-radius: 6px; box-shadow: 0 6px 24px rgb(0 50 60 / .18); padding: 14px 16px; }
+  .searchrow { display: flex; align-items: center; gap: 14px; }
+  .searchrow input { flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--muted); background: none; font: inherit; font-size: 16px; padding: 6px 2px; outline: none; }
+  .searchrow input:focus { border-bottom-color: var(--accent); }
+  .count { font: 700 26px var(--hand); white-space: nowrap; }
+  .count small { font: 12px var(--cond); color: var(--muted); display: block; line-height: 1; }
+  .toggle { border: 0; background: none; cursor: pointer; font-size: 18px; padding: 4px 6px; transition: transform .2s; }
+  .search.open .toggle { transform: rotate(180deg); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .hint a { color: inherit; }
+  .login { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 14px; }
+  .login input { flex: 1; min-width: 140px; font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px; }
+  .login .err { color: #b0302a; font-size: 13px; width: 100%; }
+  .login .err:empty { display: none; }
+  .locked { flex: 1; aspect-ratio: 1; display: grid; place-items: center; text-align: center; color: var(--muted); font: 700 22px var(--hand); background: repeating-linear-gradient(45deg, #efe9dc 0 10px, #f5f0e6 10px 20px); }
+  .tile .locked { font-size: 16px; }
+  .filters { display: none; margin-top: 12px; gap: 10px; flex-direction: column; }
+  .search.open .filters { display: flex; }
+  .fgroup { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .fgroup > span { font: 700 20px var(--hand); width: 82px; }
+  .chip { border: 1px solid var(--line); background: #fff; border-radius: 14px; padding: 2px 10px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip i { width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgb(0 0 0 / .2); display: inline-block; }
+  .chip.p-brown { background: var(--brown); color: #fff; } .chip.p-pink { background: var(--pink); } .chip.p-white { background: var(--white); }
+  .chip.p-brown[aria-pressed="true"], .chip.p-pink[aria-pressed="true"], .chip.p-white[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .factions { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn { border: 0; background: #6b4a22; color: #fff; border-radius: 4px; padding: 6px 14px; cursor: pointer; font-weight: 600; }
+  .btn.light { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+
+  /* ---------- card grid ---------- */
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(214px, 1fr)); gap: 18px; padding: 24px 16px 48px; max-width: 1480px; margin: auto; }
+  .card { background: var(--paper); border-radius: 8px; box-shadow: 0 2px 10px rgb(0 40 50 / .18); overflow: hidden; display: flex; flex-direction: column; font-size: 12px; }
+  .ctop { display: flex; gap: 6px; padding: 8px 8px 0; align-items: stretch; }
+  .hab { width: 46px; flex: none; background: #c7c2b6; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 3px 0; font-size: 15px; line-height: 1.1; }
+  .hab .food { font-size: 11px; letter-spacing: -1px; }
+  .banner { flex: 1; border: 1px solid #b9b2a3; border-radius: 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 3px 4px; background: #fff; min-width: 0; }
+  .cname { font: 700 21px/1 var(--hand); letter-spacing: .02em; }
+  .csci { font-style: italic; font-size: 11px; color: var(--muted); }
+  .cmid { position: relative; display: flex; }
+  .stats { width: 46px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0 0 8px; font-size: 13px; }
+  .stats b { font: 700 24px/1 var(--hand); }
+  .stats .eggs { letter-spacing: -2px; color: #9c907c; font-size: 11px; }
+  .frame { position: relative; flex: 1; border: 0; padding: 0; background: none; cursor: zoom-in; min-width: 0; }
+  .frame img, .frame canvas { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; mix-blend-mode: multiply; }
+  .frame canvas { position: absolute; inset: 0; height: 100%; mix-blend-mode: normal; pointer-events: none; }
+  .noart { flex: 1; aspect-ratio: 1; display: grid; place-items: center; color: var(--muted); font: 700 20px var(--hand); opacity: .5; }
+  .ws { position: absolute; right: 8px; bottom: 2px; font-size: 10px; color: var(--muted); }
+  .power { margin-top: 4px; padding: 6px 8px; min-height: 52px; font-size: 11.5px; line-height: 1.25; }
+  .power b { font: 700 14px var(--hand); letter-spacing: .03em; margin-right: 3px; }
+  .power.brown { background: var(--brown); color: #fff; } .power.pink { background: var(--pink); } .power.white { background: var(--white); }
+  .power.none { background: transparent; color: var(--muted); }
+  .pal { display: flex; height: 26px; }
+  .pal button { border: 0; padding: 0; cursor: pointer; position: relative; min-width: 6px; }
+  .pal button:hover::after, .pal button:focus-visible::after { content: attr(data-label); position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; font: 11px monospace; color: #fff; background: var(--ink); padding: 2px 5px; border-radius: 3px; z-index: 2; }
+  .credit { font-size: 10px; color: var(--muted); padding: 3px 8px 5px; }
+  .credit a { color: inherit; }
+
+  /* ---------- detail ---------- */
+  dialog { border: 0; padding: 0; background: transparent; max-width: min(1200px, 96vw); width: 100%; max-height: 94vh; overflow: visible; }
+  dialog::backdrop { background: rgb(40 70 75 / .55); }
+  .dwrap { max-height: 94vh; overflow-y: auto; padding: 4px; }
+  .close { position: fixed; top: 14px; right: 18px; border: 0; background: none; color: #fff; font-size: 34px; cursor: pointer; line-height: 1; z-index: 3; }
+  .dtop { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+  @media (max-width: 820px) { .dtop { grid-template-columns: 1fr; } }
+  .big { font-size: 14px; }
+  .big .cname { font-size: 34px; } .big .csci { font-size: 14px; } .big .hab { width: 64px; font-size: 22px; } .big .hab .food { font-size: 15px; }
+  .big .stats { width: 64px; font-size: 16px; } .big .stats b { font-size: 34px; }
+  .stage { position: relative; flex: 1; min-width: 0; }
+  .stage canvas { width: 100%; max-height: 62vh; aspect-ratio: 1; object-fit: contain; display: block; }
+  #cv { cursor: crosshair; mix-blend-mode: multiply; }
+  #heatBig { position: absolute; inset: 0; height: 100%; pointer-events: none; }
+  .big .power { font-size: 14px; min-height: 0; } .big .power b { font-size: 18px; }
+  .flavor { font-style: italic; color: var(--muted); padding: 6px 10px 10px; font-size: 13px; }
+  .side { display: flex; flex-direction: column; gap: 8px; }
+  .ptitle { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 3px; text-align: center; font: 700 26px/1.1 var(--hand); padding: 8px; }
+  .pbox { background: rgb(255 255 255 / .85); border-radius: 3px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  #rows { display: flex; flex-direction: column; gap: 6px; }
+  .row { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--panel-line); border-radius: 2px; padding: 6px 8px; cursor: pointer; font-size: 15px; }
+  .row:hover { background: #bfe0ea; }
+  .row .sw { width: 30px; height: 24px; border-radius: 3px; border: 1px solid rgb(0 0 0 / .15); flex: none; }
+  .row b { font: 700 22px/1 var(--hand); min-width: 54px; }
+  .row code { color: #46606a; font-size: 12px; cursor: copy; }
+  .row .pct { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .row .x { border: 0; background: none; color: #46606a; cursor: pointer; font-size: 20px; line-height: 1; padding: 0 2px; }
+  .row .x:hover { color: #b0302a; }
+  .loupe { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); padding: 2px; }
+  #loupe { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); flex: none; background: #fff; }
+  .removed { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 12px; color: var(--muted); }
+  .removed button { width: 22px; height: 22px; border-radius: 3px; border: 1px dashed var(--muted); cursor: pointer; opacity: .65; }
+  .sims { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .sec { background: rgb(255 255 255 / .9); border-radius: 6px; padding: 10px 12px 12px; scroll-margin-top: 8px; }
+  .sec h3 { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; font: 700 24px/1 var(--hand); flex-wrap: wrap; }
+  .sec h3 .sw { width: 22px; height: 18px; border-radius: 3px; border: 1px solid rgb(0 0 0 / .15); }
+  .sec h3 small { font: 12px var(--cond); color: var(--muted); }
+  .strip { display: grid; grid-auto-flow: column; grid-auto-columns: 128px; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .tile { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); cursor: pointer; padding: 0; text-align: left; overflow: hidden; display: flex; flex-direction: column; }
+  .tile img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; mix-blend-mode: multiply; }
+  .tile .tn { font: 700 17px/1.05 var(--hand); padding: 2px 6px 0; }
+  .tile .match { display: flex; flex-wrap: wrap; gap: 3px 6px; padding: 3px 6px 6px; font-size: 11px; color: var(--muted); align-items: center; }
+  .pair { display: inline-flex; align-items: center; gap: 2px; }
+  .pair i { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgb(0 0 0 / .15); display: inline-block; }
+  .empty { color: var(--muted); font-size: 13px; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <img id="heroimg" alt="" hidden>
+  <h1>Wingspan Palettes</h1>
+  <div class="search" id="search">
+    <div class="searchrow">
+      <input id="q" type="search" placeholder="Search birds" aria-label="Search birds by name">
+      <div class="count"><span id="shown">180</span><small>birds shown</small></div>
+      <button class="toggle" id="toggle" aria-expanded="false" aria-label="Show filters">⌄</button>
+    </div>
+    <div class="hint">Hover a color to see where it is on the bird · click a card to edit its palette and find birds with similar colors</div>
+    <form class="login" id="login" hidden><span>🔒 The card art is private.</span>
+      <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password"><button class="btn">Log in</button><span id="pwerr" class="err"></span></form>
+    <div class="hint" id="loggedin" hidden>Logged in · <a href="#" id="logout">Log out</a></div>
+    <div class="filters" id="filters"></div>
+  </div>
+</header>
+<main id="grid"></main>
+
+<dialog id="dlg">
+  <button class="close" id="close" aria-label="Close">×</button>
+  <div class="dwrap" id="dwrap">
+    <div class="dtop">
+      <div id="bigcard"></div>
+      <div class="side">
+        <div class="ptitle">Bird Colors</div>
+        <div class="pbox">
+          <div id="rows"></div>
+          <div class="loupe"><span id="loupe"></span><span id="hover">Click the bird to add a color</span></div>
+          <div class="removed" id="removed"></div>
+        </div>
+      </div>
+    </div>
+    <div class="sims" id="sims"></div>
+  </div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script src="birds.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const grid = $('grid'), q = $('q'), dlg = $('dlg');
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const HAB = { Forest: '🌲', Grassland: '🌾', Wetland: '💧' };
+  const FOOD = { Invertebrate: '🐛', Seed: '🌱', Fish: '🐟', Fruit: '🍒', Rodent: '🐭', Nectar: '🌸', Wild: '✳️' };
+  const NEST = { bowl: '◡', cavity: '◉', ground: '▬', platform: '☰', wild: '★', none: '–' };
+  const POWER = { brown: 'When activated:', white: 'When played:', pink: 'Once between turns:' };
+  const ICON = { card: '🃏', egg: '🥚', die: '🎲', predator: '🦅', forest: '🌲', grassland: '🌾', wetland: '💧', ...Object.fromEntries(Object.entries(FOOD).map(([k, v]) => [k.toLowerCase(), v])), ...NEST };
+  const powerText = t => esc(t).replace(/\[(\w+)\]/g, (m, k) => ICON[k] ? `<span title="${k}">${ICON[k]}</span>` : m);
+  const NAMES = ['Black', 'White', 'Gray', 'Beige', 'Brown', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink'];
+  const NAME_HEX = { Black: '#222', White: '#fff', Gray: '#999', Beige: '#e6d6bd', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e', Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
+
+  // ---------- color math ----------
+  const rgbOf = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  const hexOf = rgb => '#' + rgb.map(v => v.toString(16).padStart(2, '0')).join('');
+  function lab([r, g, b]) {
+    const f = c => (c /= 255) > 0.04045 ? ((c + 0.055) / 1.055) ** 2.4 : c / 12.92;
+    const R = f(r), G = f(g), B = f(b);
+    const h = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+    const x = h((R * .4124 + G * .3576 + B * .1805) / .95047), y = h(R * .2126 + G * .7152 + B * .0722), z = h((R * .0193 + G * .1192 + B * .9505) / 1.08883);
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+  }
+  const dE = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+  // ponytail: hand-tuned HSL thresholds; borderline tans/olives may land in a neighbouring name.
+  function colorName(hex) {
+    const [r, g, b] = rgbOf(hex).map(v => v / 255), max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    if (l < 0.1) return 'Black';
+    if (s < 0.15 || d < 0.08) return l < 0.2 ? 'Black' : l > 0.82 ? 'White' : 'Gray';
+    let h = d === 0 ? 0 : max === r ? 60 * (((g - b) / d) % 6) : max === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+    if (h < 0) h += 360;
+    if ((h < 70 || h >= 330) && l > 0.6 && s < 0.45) return 'Beige';  // pale buff / cream
+    if (h < 10 || h >= 345) return l > 0.7 ? 'Pink' : l < 0.3 && s < 0.5 ? 'Brown' : 'Red';
+    if (h < 45) return l < 0.45 || s < 0.4 ? 'Brown' : 'Orange';
+    if (h < 70) return l < 0.3 ? 'Brown' : 'Yellow';
+    if (h < 165) return 'Green';
+    if (h < 255) return 'Blue';
+    if (h < 290) return 'Purple';
+    return l > 0.55 ? 'Pink' : 'Purple';
+  }
+  [['#ff0000','Red'],['#2ab3e5','Blue'],['#ffd700','Yellow'],['#8b4513','Brown'],['#ffc0cb','Pink'],['#808080','Gray'],['#ffffff','White'],
+   ['#000000','Black'],['#228b22','Green'],['#800080','Purple'],['#ffa500','Orange'],['#e89ab0','Pink'],['#26252a','Black'],
+   ['#d4bdb6','Beige'],['#ec967c','Orange'],['#f3ced3','Pink'],['#cd434f','Red']]
+    .forEach(([hex, want]) => console.assert(colorName(hex) === want, `colorName(${hex}) = ${colorName(hex)}, want ${want}`));
+
+  // ---------- palettes + your edits (removed / added colors, saved in this browser) ----------
+  let edits = {};
+  try { edits = JSON.parse(localStorage.getItem('edits')) || {}; } catch {}
+  const save = () => { try { localStorage.setItem('edits', JSON.stringify(edits)); } catch {} };
+  const editOf = b => edits[b.sci] ||= { removed: [], added: [] };
+  function pal(b) {
+    if (!b.art) return [];
+    const e = edits[b.sci] || {}, rm = new Set(e.removed || []);
+    const all = [...b.art.palette.filter(p => !rm.has(p.hex)), ...(e.added || []).map(hex => ({ hex, pct: 6, added: true }))];
+    const tot = all.reduce((s, p) => s + p.pct, 0) || 1;
+    return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) }));
+  }
+  // 1 = same color, 0 = ΔE ≥ range. Only colors with the same name compare (Blue vs Blue, never Blue vs Black).
+  const closeness = (a, b, range) => a.name === b.name ? Math.max(0, 1 - dE(a.lab, b.lab) / range) : 0;
+  const swatches = list => `<div class="pal">${list.map(p => `<button style="background:${p.hex};flex:${p.pct}" data-hex="${p.hex}" data-label="${p.name} ${p.hex}" aria-label="${p.name} ${p.hex}"></button>`).join('')}</div>`;
+
+  // ---------- heat map: where a color sits in the image ----------
+  const pixCache = new Map();
+  function pixels(src, size) {  // downscaled Lab pixels of an image, cached
+    const key = src + '@' + size;
+    if (!pixCache.has(key)) pixCache.set(key, new Promise(res => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, size / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.round(img.naturalWidth * k), h = Math.round(img.naturalHeight * k);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+        const d = x.getImageData(0, 0, w, h).data, L = new Float32Array(w * h * 3);
+        for (let i = 0; i < w * h; i++) L.set(lab([d[i * 4], d[i * 4 + 1], d[i * 4 + 2]]), i * 3);
+        res({ w, h, L });
+      };
+      img.src = src;
+    }));
+    return pixCache.get(key);
+  }
+  async function drawHeat(canvas, src, hex, size) {
+    const { w, h, L } = await pixels(src, size), t = lab(rgbOf(hex));
+    canvas.width = w; canvas.height = h;
+    const g = canvas.getContext('2d'), out = g.createImageData(w, h), o = out.data;
+    for (let i = 0; i < w * h; i++) {
+      const v = Math.max(0, 1 - dE([L[i * 3], L[i * 3 + 1], L[i * 3 + 2]], t) / 22);
+      if (v > 0) { o[i * 4] = 255; o[i * 4 + 1] = Math.round(230 * (1 - v)); o[i * 4 + 2] = 0; o[i * 4 + 3] = 110 + 145 * v; }
+      else { o[i * 4] = o[i * 4 + 1] = o[i * 4 + 2] = 30; o[i * 4 + 3] = 150; }
+    }
+    g.putImageData(out, 0, 0);
+    canvas.hidden = false;
+  }
+  const clearHeat = canvas => canvas.hidden = true;
+
+  // ---------- card (shared by grid and detail) ----------
+  function cardHTML(b, i, big = false) {
+    const art = !b.art ? '<div class="noart">no card art</div>'
+      : !authed ? `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="locked">🔒<br>log in to see the art</div></button>`
+      : big ? '<div class="stage"><canvas id="cv" aria-label="Click the bird to add a color"></canvas><canvas id="heatBig" hidden></canvas></div>'
+      : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><img data-art="${keyOf(b)}" alt="${esc(b.name)}"><canvas hidden></canvas></button>`;
+    return `<article class="card ${big ? 'big' : ''}">
+      <div class="ctop">
+        <div class="hab"><div>${b.habitats.map(h => HAB[h]).join('')}</div><div class="food">${Object.entries(b.food).map(([f, n]) => FOOD[f].repeat(n)).join('')}</div></div>
+        <div class="banner"><div class="cname">${esc(b.name)}</div><div class="csci">${esc(b.sci)}</div></div>
+      </div>
+      <div class="cmid">
+        <div class="stats"><b>${b.points}</b><span title="${esc(b.nest)} nest">${NEST[b.nest] ?? ''}</span><span class="eggs" title="egg limit">${'●'.repeat(b.eggs)}</span></div>
+        ${art}
+        <div class="ws">${b.wingspan}cm</div>
+      </div>
+      <div class="power ${b.color || 'none'}">${b.color ? `<b>${POWER[b.color] || ''}</b>` : ''}${b.power ? powerText(b.power) : 'No power'}</div>
+      ${big ? `<div class="flavor">${esc(b.flavor)}</div>` : ''}
+      ${!big && b.art ? swatches(pal(b)) : ''}
+      ${b.art ? `<div class="credit">Art: <a href="${esc(b.art.site)}" target="_blank" rel="noopener">${esc(b.art.artist)}</a></div>` : ''}
+    </article>`;
+  }
+
+  // ---------- filters ----------
+  const sel = { hab: new Set(), power: new Set(), color: new Set(), food: new Set() };
+  $('filters').innerHTML = `
+    <div class="fgroup"><span>Habitat</span>${Object.entries(HAB).map(([h, e]) => `<button class="chip" data-f="hab" data-v="${h}" aria-pressed="false">${e} ${h}</button>`).join('')}</div>
+    <div class="fgroup"><span>Colors</span>${NAMES.map(n => `<button class="chip" data-f="color" data-v="${n}" aria-pressed="false"><i style="background:${NAME_HEX[n]}"></i>${n}</button>`).join('')}</div>
+    <div class="fgroup"><span>Food</span>${Object.entries(FOOD).map(([f, e]) => `<button class="chip" data-f="food" data-v="${f}" aria-pressed="false">${e} ${f}</button>`).join('')}</div>
+    <div class="fgroup"><span>Powers</span>${['brown', 'pink', 'white'].map(c => `<button class="chip p-${c}" data-f="power" data-v="${c}" aria-pressed="false">${c[0].toUpperCase() + c.slice(1)}</button>`).join('')}</div>
+    <div class="factions"><span class="hint">Colors: bird has every chosen color (≥5% of the bird). Other groups: any.</span>
+      <span><button class="btn light" id="export">Export palettes</button> <button class="btn" id="reset">Reset</button></span></div>`;
+  $('filters').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if (!c) return;
+    const s = sel[c.dataset.f], v = c.dataset.v;
+    s.has(v) ? s.delete(v) : s.add(v);
+    c.setAttribute('aria-pressed', s.has(v));
+    render();
+  });
+  $('toggle').onclick = () => { const o = $('search').classList.toggle('open'); $('toggle').setAttribute('aria-expanded', o); };
+
+  function render() {
+    const term = q.value.trim().toLowerCase();
+    const list = BIRDS.map((b, i) => [b, i]).filter(([b]) => {
+      if (term && !(b.name + ' ' + b.sci).toLowerCase().includes(term)) return false;
+      if (sel.hab.size && !b.habitats.some(h => sel.hab.has(h))) return false;
+      if (sel.food.size && !Object.keys(b.food).some(f => sel.food.has(f))) return false;
+      if (sel.power.size && !sel.power.has(b.color)) return false;
+      if (sel.color.size) { const names = new Set(pal(b).filter(c => c.pct >= 5).map(c => c.name)); if (![...sel.color].every(n => names.has(n))) return false; }
+      return true;
+    });
+    $('shown').textContent = list.length;
+    grid.innerHTML = list.map(([b, i]) => cardHTML(b, i)).join('');
+    hydrate(grid);
+  }
+  grid.addEventListener('mouseover', e => {
+    const hex = e.target.dataset.hex; if (!hex || !authed) return;
+    const card = e.target.closest('.card');
+    const src = card.querySelector('.frame img').getAttribute('src');
+    if (src) drawHeat(card.querySelector('.frame canvas'), src, hex, 300);
+  });
+  grid.addEventListener('mouseout', e => { if (e.target.dataset.hex && authed) clearHeat(e.target.closest('.card').querySelector('.frame canvas')); });
+  grid.addEventListener('click', e => {
+    const hex = e.target.dataset.hex; if (hex) return copy(hex);
+    const f = e.target.closest('.frame'); if (f) openBird(BIRDS[f.dataset.i]);
+  });
+
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.opacity = 1; clearTimeout(t.t); t.t = setTimeout(() => t.style.opacity = 0, 1200); }
+  function copy(hex) { navigator.clipboard?.writeText(hex).then(() => toast('Copied ' + hex), () => toast(hex)); }
+
+  // ---------- detail ----------
+  let cur = null, cv, ctx;
+  function openBird(b) {
+    cur = b;
+    $('bigcard').innerHTML = cardHTML(b, BIRDS.indexOf(b), true);
+    renderSide();
+    if (!dlg.open) dlg.showModal();
+    $('dwrap').scrollTop = 0;
+    $('hover').textContent = authed ? 'Click the bird to add a color' : 'Log in to see the art and add colors';
+    if (!authed) return;
+    cv = $('cv'); ctx = cv.getContext('2d', { willReadFrequently: true });
+    const img = new Image();
+    img.onload = () => { cv.width = img.naturalWidth; cv.height = img.naturalHeight; ctx.drawImage(img, 0, 0); };
+    artURL(keyOf(b)).then(u => img.src = u);
+    cv.addEventListener('mousemove', e => { const hex = colorAt(e); if (hex) { $('loupe').style.background = hex; $('hover').textContent = `${colorName(hex)} ${hex} · click to add`; } });
+    cv.addEventListener('click', e => { const hex = colorAt(e); if (!hex) return; editOf(cur).added.push(hex); save(); renderSide(); toast('Added ' + colorName(hex) + ' ' + hex); });
+  }
+  function colorAt(e) {
+    const r = cv.getBoundingClientRect(), s = Math.min(r.width / cv.width, r.height / cv.height);
+    const x = Math.round((e.clientX - r.left - (r.width - cv.width * s) / 2) / s), y = Math.round((e.clientY - r.top - (r.height - cv.height * s) / 2) / s);
+    if (x < 1 || y < 1 || x >= cv.width - 1 || y >= cv.height - 1) return null;
+    const d = ctx.getImageData(x - 1, y - 1, 3, 3).data, avg = [0, 1, 2].map(k => { let t = 0; for (let i = 0; i < 9; i++) t += d[i * 4 + k]; return Math.round(t / 9); });
+    return hexOf(avg);
+  }
+  function renderSide() {
+    const p = pal(cur), removed = (edits[cur.sci] || {}).removed || [];
+    $('rows').innerHTML = p.map(c => `<div class="row" data-hex="${c.hex}" title="Hover: show on bird · click: jump to birds with this color">
+        <span class="sw" style="background:${c.hex}"></span><b>${c.name}</b><code data-copy="${c.hex}" title="Copy">${c.hex}</code>
+        <span class="pct">${Math.round(c.pct)}%</span><button class="x" data-del="${c.hex}" aria-label="Remove ${c.hex}" title="Not part of the bird? Remove it">×</button></div>`).join('')
+      || '<div class="empty">No colors left. Click the bird to add some.</div>';
+    $('removed').innerHTML = removed.length ? 'Removed, click to restore: ' + removed.map(hex => `<button style="background:${hex}" data-restore="${hex}" title="Restore ${colorName(hex)} ${hex}" aria-label="Restore ${hex}"></button>`).join('') : '';
+    renderSims();
+  }
+
+  // Similar birds, one section per comparison so it's clear which color matched.
+  function renderSims() {
+    const mine = pal(cur), others = BIRDS.filter(b => b !== cur && b.art).map(b => ({ b, p: pal(b) }));
+    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${authed ? `<img data-art="${keyOf(b)}" alt="">` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
+    const pairChip = (a, c) => `<span class="pair" title="${a.name} ${a.hex} ↔ ${c.name} ${c.hex}"><i style="background:${a.hex}"></i><i style="background:${c.hex}"></i>${c.name}</span>`;
+    // Overall: shared coverage summed over every color pair; each tile lists the pairs that matched most.
+    const overall = others.map(({ b, p }) => {
+      const pairs = mine.flatMap(a => p.map(c => [Math.min(a.pct, c.pct) * closeness(a, c, 25), a, c])).filter(x => x[0] > 0).sort((x, y) => y[0] - x[0]);
+      return { b, score: pairs.reduce((s, x) => s + x[0], 0), pairs: pairs.slice(0, 3) };
+    }).sort((x, y) => y.score - x.score).slice(0, 10);
+    let html = `<section class="sec"><h3>Most similar overall <small>left chip = ${esc(cur.name)}, right chip = the match</small></h3>
+      <div class="strip">${overall.map(o => tile(o.b, o.pairs.map(([, a, c]) => pairChip(a, c)).join(''))).join('')}</div></section>`;
+    // Per color: birds with the most of a color close to that one.
+    html += mine.map(a => {
+      const hits = others.map(({ b, p }) => {
+        const best = p.map(c => [c.pct * closeness(a, c, 30), c]).sort((x, y) => y[0] - x[0]);
+        return { b, score: best.reduce((s, x) => s + x[0], 0), c: best[0]?.[1] };
+      }).filter(h => h.score > 1).sort((x, y) => y.score - x.score).slice(0, 10);
+      return `<section class="sec" id="sec-${a.hex.slice(1)}"><h3><span class="sw" style="background:${a.hex}"></span>${a.name} <small>${a.hex} · ${Math.round(a.pct)}% of ${esc(cur.name)} · birds with the most of this color</small></h3>
+        ${hits.length ? `<div class="strip">${hits.map(h => tile(h.b, `${pairChip(a, h.c)} ${Math.round(h.c.pct)}%`)).join('')}</div>` : '<div class="empty">No other bird has much of this color.</div>'}</section>`;
+    }).join('');
+    $('sims').innerHTML = html;
+    hydrate($('sims'));
+  }
+
+  $('rows').addEventListener('mouseover', e => { const r = e.target.closest('.row'); if (r && authed) artURL(keyOf(cur)).then(u => drawHeat($('heatBig'), u, r.dataset.hex, 700)); });
+  $('rows').addEventListener('mouseleave', () => authed && clearHeat($('heatBig')));
+  $('rows').addEventListener('click', e => {
+    if (e.target.dataset.copy) return copy(e.target.dataset.copy);
+    const del = e.target.dataset.del;
+    if (del) {
+      const ed = editOf(cur);
+      if (ed.added.includes(del)) ed.added = ed.added.filter(h => h !== del); else ed.removed.push(del);
+      save(); if (authed) clearHeat($('heatBig')); return renderSide();
+    }
+    const r = e.target.closest('.row'); if (r) $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  $('removed').addEventListener('click', e => {
+    const hex = e.target.dataset.restore; if (!hex) return;
+    const ed = editOf(cur); ed.removed = ed.removed.filter(h => h !== hex); save(); renderSide();
+  });
+  $('sims').addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) openBird(BIRDS.find(b => b.sci === t.dataset.sci)); });
+  $('close').onclick = () => dlg.close();
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', render);
+
+  $('export').onclick = () => {
+    const out = BIRDS.filter(b => b.art).map(b => ({ name: b.name, sci: b.sci, colors: pal(b).map(c => ({ hex: c.hex, name: c.name, pct: Math.round(c.pct) })) }));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
+    a.download = 'wingspan-palettes.json'; a.click();
+  };
+  $('reset').onclick = () => { Object.values(sel).forEach(s => s.clear()); document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false')); q.value = ''; render(); };
+  q.oninput = render;
+
+  // ---------- login: the art is published only encrypted (art-enc/, see build.py); the password unlocks it here ----------
+  let authed = false, artKey = null;
+  const artCache = new Map();
+  const keyOf = b => b.art.image.slice(4, -4);  // "art/northerncardinal.jpg" -> "northerncardinal"
+  const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const unseal = buf => crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, artKey, buf.slice(12));  // iv || ciphertext || tag
+  function artURL(name) {  // decrypted image as a blob: URL, cached
+    if (!artCache.has(name)) artCache.set(name, fetch(`art-enc/${name}.bin`).then(r => r.arrayBuffer()).then(unseal)
+      .then(d => URL.createObjectURL(new Blob([d], { type: 'image/jpeg' }))));
+    return artCache.get(name);
+  }
+  // decrypt images only as they scroll into view
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    io.unobserve(e.target);
+    artURL(e.target.dataset.art).then(u => e.target.src = u, () => {});
+  }), { rootMargin: '400px' });
+  function hydrate(root) { if (authed) root.querySelectorAll('img[data-art]:not([src])').forEach(i => io.observe(i)); }
+
+  function setAuthed(v) {
+    authed = v;
+    $('login').hidden = v; $('loggedin').hidden = !v; $('heroimg').hidden = !v;
+    if (v) artURL('scissortailedflycatcher').then(u => $('heroimg').src = u);
+    render();
+  }
+  async function useKey(raw) {
+    artKey = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+    const meta = await (await fetch('art-enc/meta.json')).json();
+    await unseal(unb64(meta.check).buffer);  // throws if the key is wrong
+  }
+  $('login').onsubmit = async e => {
+    e.preventDefault();
+    $('pwerr').textContent = 'Checking…';
+    try {
+      const meta = await (await fetch('art-enc/meta.json')).json();
+      const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('pw').value), 'PBKDF2', false, ['deriveBits']);
+      const raw = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: unb64(meta.salt), iterations: meta.iterations, hash: 'SHA-256' }, base, 256);
+      await useKey(raw);
+      try { localStorage.setItem('artkey', btoa(String.fromCharCode(...new Uint8Array(raw)))); } catch {}
+      $('pwerr').textContent = ''; $('pw').value = '';
+      setAuthed(true);
+    } catch { $('pwerr').textContent = 'Wrong password.'; }
+  };
+  $('logout').onclick = e => {
+    e.preventDefault();
+    try { localStorage.removeItem('artkey'); } catch {}
+    artCache.forEach(p => p.then(URL.revokeObjectURL, () => {})); artCache.clear(); artKey = null;
+    setAuthed(false);
+  };
+  (async () => {  // stay logged in on this device
+    let saved = null;
+    try { saved = localStorage.getItem('artkey'); } catch {}
+    try { if (saved) { await useKey(unb64(saved)); return setAuthed(true); } } catch {}
+    setAuthed(false);
+  })();
+</script>
+</body>
+</html>
