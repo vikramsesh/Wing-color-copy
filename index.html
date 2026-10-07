@@ -69,6 +69,8 @@
   .stats b { font: 700 24px/1 var(--hand); }
   .stats .eggs { letter-spacing: -2px; color: #9c907c; font-size: 11px; }
   .frame { position: relative; flex: 1; border: 0; padding: 0; background: none; cursor: zoom-in; min-width: 0; }
+  .frame { overflow: hidden; }
+  .pan { position: relative; transform-origin: center; }
   .frame img, .frame canvas { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; mix-blend-mode: multiply; }
   .frame canvas { position: absolute; inset: 0; height: 100%; mix-blend-mode: normal; pointer-events: none; }
   .noart { flex: 1; aspect-ratio: 1; display: grid; place-items: center; color: var(--muted); font: 700 20px var(--hand); opacity: .5; }
@@ -93,7 +95,8 @@
   .big { font-size: 14px; }
   .big .cname { font-size: 34px; } .big .csci { font-size: 14px; } .big .hab { width: 64px; font-size: 22px; } .big .hab .food { font-size: 15px; }
   .big .stats { width: 64px; font-size: 16px; } .big .stats b { font-size: 34px; }
-  .stage { position: relative; flex: 1; min-width: 0; }
+  .stage { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+  .stage.moving, .stage.moving canvas { cursor: move !important; }
   .stage canvas { width: 100%; max-height: 62vh; aspect-ratio: 1; object-fit: contain; display: block; }
   #cv { cursor: crosshair; mix-blend-mode: multiply; }
   #heatBig { position: absolute; inset: 0; height: 100%; pointer-events: none; }
@@ -115,6 +118,14 @@
   #loupe { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); flex: none; background: #fff; }
   .removed { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 12px; color: var(--muted); }
   .removed button { width: 22px; height: 22px; border-radius: 3px; border: 1px dashed var(--muted); cursor: pointer; opacity: .65; }
+  .admin { border-top: 1px dashed var(--panel-line); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .admin h4 { margin: 0; font: 700 20px var(--hand); }
+  .admin .ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .admin input[type=range] { flex: 1; }
+  .btn.light[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .adminbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; margin-top: 8px; padding: 6px 8px; background: #fff3d6; border-radius: 4px; }
+  .adminbar b { font: 700 18px var(--hand); }
+  .filtnote { font-size: 13px; color: var(--muted); background: rgb(255 255 255 / .9); border-radius: 6px; padding: 6px 12px; }
   .sims { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
   .sec { background: rgb(255 255 255 / .9); border-radius: 6px; padding: 10px 12px 12px; scroll-margin-top: 8px; }
   .sec h3 { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; font: 700 24px/1 var(--hand); flex-wrap: wrap; }
@@ -122,6 +133,7 @@
   .sec h3 small { font: 12px var(--cond); color: var(--muted); }
   .strip { display: grid; grid-auto-flow: column; grid-auto-columns: 128px; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
   .tile { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); cursor: pointer; padding: 0; text-align: left; overflow: hidden; display: flex; flex-direction: column; }
+  .tile .tframe { overflow: hidden; }
   .tile img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; mix-blend-mode: multiply; }
   .tile .tn { font: 700 17px/1.05 var(--hand); padding: 2px 6px 0; }
   .tile .match { display: flex; flex-wrap: wrap; gap: 3px 6px; padding: 3px 6px 6px; font-size: 11px; color: var(--muted); align-items: center; }
@@ -146,6 +158,11 @@
     <form class="login" id="login" hidden><span>🔒 The card art is private.</span>
       <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password"><button class="btn">Log in</button><span id="pwerr" class="err"></span></form>
     <div class="hint" id="loggedin" hidden>Logged in · <a href="#" id="logout">Log out</a></div>
+    <div class="hint" id="adminlinkwrap"><a href="#" id="adminlink">Admin</a></div>
+    <form class="login" id="adminform" hidden><span>Admin password</span>
+      <input id="apw" type="password" placeholder="Admin password" aria-label="Admin password" autocomplete="off"><button class="btn">Log in as admin</button><span id="apwerr" class="err"></span></form>
+    <div class="adminbar" id="adminbar" hidden><b>Admin</b><span id="pending"></span>
+      <button class="btn light" id="dlover">Download overrides.json</button><a href="#" id="adminout">Log out admin</a></div>
     <div class="filters" id="filters"></div>
   </div>
 </header>
@@ -162,6 +179,12 @@
           <div id="rows"></div>
           <div class="loupe"><span id="loupe"></span><span id="hover">Click the bird to add a color</span></div>
           <div class="removed" id="removed"></div>
+          <div class="admin" id="adminpanel" hidden>
+            <h4>Picture position</h4>
+            <div class="ctl"><button class="btn light" id="move" aria-pressed="false">Move picture</button><button class="btn light" id="viewreset">Reset</button></div>
+            <div class="ctl"><label for="zoom">Zoom</label><input type="range" id="zoom" min="0.5" max="3" step="0.05" value="1"><span id="zoomv">1.00×</span></div>
+            <div class="hint">Turn on "Move picture", then drag the image. Saved for this bird in this image set.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -222,7 +245,20 @@
    ['#d4bdb6','Beige'],['#ec967c','Orange'],['#f3ced3','Pink'],['#cd434f','Red']]
     .forEach(([hex, want]) => console.assert(colorName(hex) === want, `colorName(${hex}) = ${colorName(hex)}, want ${want}`));
 
-  // ---------- palettes + your edits (removed / added colors, saved in this browser) ----------
+  // ---------- admin curation: removed colors + picture position ----------
+  // Published for everyone in overrides.json ({set: {sci: {removed: [hex], view: {x, y, z}}}}). The admin edits a draft
+  // in this browser and publishes it by uploading the downloaded overrides.json to the repo.
+  // ponytail: the admin password only gates the UI here; the real gate is write access to the repo.
+  const ADMIN_HASH = '29544893c720e51f2c6da255c167887722e245176bf4f282cda41e5416983b90';  // sha256('wingspan-admin:' + password)
+  let published = {}, draft = null, isAdmin = false;
+  const overridesOf = () => (isAdmin ? draft : published)[SET] || {};
+  const curOf = b => overridesOf()[b.sci] || {};
+  const draftOf = b => ((draft[SET] ||= {})[b.sci] ||= {});
+  const saveDraft = () => { try { localStorage.setItem('overrides-draft', JSON.stringify(draft)); } catch {} showPending(); };
+  const viewOf = b => ({ x: 0, y: 0, z: 1, ...curOf(b).view });
+  const panStyle = b => { const v = viewOf(b); return `transform: translate(${v.x}%, ${v.y}%) scale(${v.z})`; };
+
+  // ---------- palettes + your added colors (saved in this browser) ----------
   let edits = {};
   const EDITS = SET === 'art' ? 'edits' : 'edits-' + SET;  // each image set keeps its own palette edits
   try { edits = JSON.parse(localStorage.getItem(EDITS)) || {}; } catch {}
@@ -230,7 +266,7 @@
   const editOf = b => edits[b.sci] ||= { removed: [], added: [] };
   function pal(b) {
     if (!b.art) return [];
-    const e = edits[b.sci] || {}, rm = new Set(e.removed || []);
+    const e = edits[b.sci] || {}, rm = new Set(curOf(b).removed || []);
     const all = [...b.art.palette.filter(p => !rm.has(p.hex)), ...(e.added || []).map(hex => ({ hex, pct: 6, added: true }))];
     const tot = all.reduce((s, p) => s + p.pct, 0) || 1;
     return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) }));
@@ -275,8 +311,8 @@
   function cardHTML(b, i, big = false) {
     const art = !b.art ? '<div class="noart">no card art</div>'
       : !authed ? `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="locked">🔒<br>log in to see the art</div></button>`
-      : big ? '<div class="stage"><canvas id="cv" aria-label="Click the bird to add a color"></canvas><canvas id="heatBig" hidden></canvas></div>'
-      : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><img data-art="${keyOf(b)}" alt="${esc(b.name)}"><canvas hidden></canvas></button>`;
+      : big ? `<div class="stage" id="stage"><div class="pan" id="bigpan" style="${panStyle(b)}"><canvas id="cv" aria-label="Click the bird to add a color"></canvas><canvas id="heatBig" hidden></canvas></div></div>`
+      : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt="${esc(b.name)}"><canvas hidden></canvas></div></button>`;
     return `<article class="card ${big ? 'big' : ''}">
       <div class="ctop">
         <div class="hab"><div>${b.habitats.map(h => HAB[h]).join('')}</div><div class="food">${Object.entries(b.food).map(([f, n]) => FOOD[f].repeat(n)).join('')}</div></div>
@@ -312,16 +348,18 @@
   });
   $('toggle').onclick = () => { const o = $('search').classList.toggle('open'); $('toggle').setAttribute('aria-expanded', o); };
 
-  function render() {
-    const term = q.value.trim().toLowerCase();
-    const list = BIRDS.map((b, i) => [b, i]).filter(([b]) => {
-      if (term && !(b.name + ' ' + b.sci).toLowerCase().includes(term)) return false;
+  // Habitat / Colors / Food / Powers filters: used by the grid and by the similar-bird lists in the card view.
+  function passes(b) {
       if (sel.hab.size && !b.habitats.some(h => sel.hab.has(h))) return false;
       if (sel.food.size && !Object.keys(b.food).some(f => sel.food.has(f))) return false;
       if (sel.power.size && !sel.power.has(b.color)) return false;
       if (sel.color.size) { const names = new Set(pal(b).filter(c => c.pct >= 5).map(c => c.name)); if (![...sel.color].every(n => names.has(n))) return false; }
       return true;
-    });
+  }
+  const filterSummary = () => [...sel.hab, ...sel.color, ...sel.food, ...[...sel.power].map(p => p + ' power')].join(', ');
+  function render() {
+    const term = q.value.trim().toLowerCase();
+    const list = BIRDS.map((b, i) => [b, i]).filter(([b]) => (!term || (b.name + ' ' + b.sci).toLowerCase().includes(term)) && passes(b));
     $('shown').textContent = list.length;
     grid.innerHTML = list.map(([b, i]) => cardHTML(b, i)).join('');
     hydrate(grid);
@@ -347,6 +385,9 @@
     cur = b;
     $('bigcard').innerHTML = cardHTML(b, BIRDS.indexOf(b), true);
     renderSide();
+    $('adminpanel').hidden = !(isAdmin && authed && b.art);
+    setMoving(false);
+    syncZoom();
     if (!dlg.open) dlg.showModal();
     $('dwrap').scrollTop = 0;
     $('hover').textContent = authed ? 'Click the bird to add a color' : 'Log in to see the art and add colors';
@@ -355,8 +396,8 @@
     const img = new Image();
     img.onload = () => { cv.width = img.naturalWidth; cv.height = img.naturalHeight; ctx.drawImage(img, 0, 0); };
     artURL(keyOf(b)).then(u => img.src = u);
-    cv.addEventListener('mousemove', e => { const hex = colorAt(e); if (hex) { $('loupe').style.background = hex; $('hover').textContent = `${colorName(hex)} ${hex} · click to add`; } });
-    cv.addEventListener('click', e => { const hex = colorAt(e); if (!hex) return; editOf(cur).added.push(hex); save(); renderSide(); toast('Added ' + colorName(hex) + ' ' + hex); });
+    cv.addEventListener('mousemove', e => { if (moving) return; const hex = colorAt(e); if (hex) { $('loupe').style.background = hex; $('hover').textContent = `${colorName(hex)} ${hex} · click to add`; } });
+    cv.addEventListener('click', e => { if (moving) return; const hex = colorAt(e); if (!hex) return; editOf(cur).added.push(hex); save(); renderSide(); toast('Added ' + colorName(hex) + ' ' + hex); });
   }
   function colorAt(e) {
     const r = cv.getBoundingClientRect(), s = Math.min(r.width / cv.width, r.height / cv.height);
@@ -366,10 +407,10 @@
     return hexOf(avg);
   }
   function renderSide() {
-    const p = pal(cur), removed = (edits[cur.sci] || {}).removed || [];
+    const p = pal(cur), removed = isAdmin ? curOf(cur).removed || [] : [];
     $('rows').innerHTML = p.map(c => `<div class="row" data-hex="${c.hex}" title="Hover: show on bird · click: jump to birds with this color">
         <span class="sw" style="background:${c.hex}"></span><b>${c.name}</b><code data-copy="${c.hex}" title="Copy">${c.hex}</code>
-        <span class="pct">${Math.round(c.pct)}%</span><button class="x" data-del="${c.hex}" aria-label="Remove ${c.hex}" title="Not part of the bird? Remove it">×</button></div>`).join('')
+        <span class="pct">${Math.round(c.pct)}%</span>${isAdmin || c.added ? `<button class="x" data-del="${c.hex}" aria-label="Remove ${c.hex}" title="${c.added ? 'Remove the color you added' : 'Not part of the bird? Remove it for everyone (admin)'}">×</button>` : ''}</div>`).join('')
       || '<div class="empty">No colors left. Click the bird to add some.</div>';
     $('removed').innerHTML = removed.length ? 'Removed, click to restore: ' + removed.map(hex => `<button style="background:${hex}" data-restore="${hex}" title="Restore ${colorName(hex)} ${hex}" aria-label="Restore ${hex}"></button>`).join('') : '';
     renderSims();
@@ -377,15 +418,17 @@
 
   // Similar birds, one section per comparison so it's clear which color matched.
   function renderSims() {
-    const mine = pal(cur), others = BIRDS.filter(b => b !== cur && b.art).map(b => ({ b, p: pal(b) }));
-    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${authed ? `<img data-art="${keyOf(b)}" alt="">` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
+    const mine = pal(cur), others = BIRDS.filter(b => b !== cur && b.art && passes(b)).map(b => ({ b, p: pal(b) }));
+    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${authed ? `<div class="tframe"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt=""></div></div>` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
     const pairChip = (a, c) => `<span class="pair" title="${a.name} ${a.hex} ↔ ${c.name} ${c.hex}"><i style="background:${a.hex}"></i><i style="background:${c.hex}"></i>${c.name}</span>`;
     // Overall: shared coverage summed over every color pair; each tile lists the pairs that matched most.
     const overall = others.map(({ b, p }) => {
       const pairs = mine.flatMap(a => p.map(c => [Math.min(a.pct, c.pct) * closeness(a, c, 25), a, c])).filter(x => x[0] > 0).sort((x, y) => y[0] - x[0]);
       return { b, score: pairs.reduce((s, x) => s + x[0], 0), pairs: pairs.slice(0, 3) };
     }).sort((x, y) => y.score - x.score).slice(0, 10);
-    let html = `<section class="sec"><h3>Most similar overall <small>left chip = ${esc(cur.name)}, right chip = the match</small></h3>
+    const f = filterSummary();
+    let html = f ? `<div class="filtnote">Only showing birds that match your filters: <b>${esc(f)}</b></div>` : '';
+    html += `<section class="sec"><h3>Most similar overall <small>left chip = ${esc(cur.name)}, right chip = the match</small></h3>
       <div class="strip">${overall.map(o => tile(o.b, o.pairs.map(([, a, c]) => pairChip(a, c)).join(''))).join('')}</div></section>`;
     // Per color: every bird with at least 1% of a color in the same family (Orange ↔ Orange), however different the shade.
     // Order: closest shade and most coverage first.
@@ -410,14 +453,16 @@
     const del = e.target.dataset.del;
     if (del) {
       const ed = editOf(cur);
-      if (ed.added.includes(del)) ed.added = ed.added.filter(h => h !== del); else ed.removed.push(del);
-      save(); if (authed) clearHeat($('heatBig')); return renderSide();
+      if (ed.added.includes(del)) { ed.added = ed.added.filter(h => h !== del); save(); }
+      else if (isAdmin) { const d = draftOf(cur); d.removed = [...new Set([...(d.removed || []), del])]; saveDraft(); }
+      if (authed) clearHeat($('heatBig')); return renderSide();
     }
     const r = e.target.closest('.row'); if (r) $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   $('removed').addEventListener('click', e => {
     const hex = e.target.dataset.restore; if (!hex) return;
-    const ed = editOf(cur); ed.removed = ed.removed.filter(h => h !== hex); save(); renderSide();
+    if (!isAdmin) return;
+    const d = draftOf(cur); d.removed = (d.removed || []).filter(h => h !== hex); saveDraft(); renderSide();
   });
   $('sims').addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) openBird(BIRDS.find(b => b.sci === t.dataset.sci)); });
   $('close').onclick = () => dlg.close();
@@ -432,6 +477,58 @@
   };
   $('reset').onclick = () => { Object.values(sel).forEach(s => s.clear()); document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false')); q.value = ''; render(); };
   q.oninput = render;
+
+  // ---------- picture position (admin): zoom slider + drag, stored in the draft overrides ----------
+  let moving = false, drag = null;
+  function setMoving(v) { moving = v; $('move').setAttribute('aria-pressed', v); $('stage')?.classList.toggle('moving', v); }
+  function applyView() { const v = viewOf(cur); $('bigpan').style.transform = `translate(${v.x}%, ${v.y}%) scale(${v.z})`; $('zoomv').textContent = v.z.toFixed(2) + '×'; }
+  function syncZoom() { $('zoom').value = viewOf(cur).z; $('zoomv').textContent = viewOf(cur).z.toFixed(2) + '×'; }
+  function setView(v) { draftOf(cur).view = { ...viewOf(cur), ...v }; saveDraft(); applyView(); }
+  $('move').onclick = () => setMoving(!moving);
+  $('zoom').oninput = () => setView({ z: +$('zoom').value });
+  $('viewreset').onclick = () => { delete draftOf(cur).view; saveDraft(); applyView(); syncZoom(); };
+  $('bigcard').addEventListener('pointerdown', e => {
+    const st = e.target.closest('.stage'); if (!moving || !st) return;
+    const v = viewOf(cur), r = st.getBoundingClientRect();
+    drag = { x0: e.clientX, y0: e.clientY, v, w: r.width, h: r.height };
+    st.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  $('bigcard').addEventListener('pointermove', e => {
+    if (!drag) return;
+    const r = n => Math.round(n * 10) / 10;
+    draftOf(cur).view = { ...drag.v, x: r(drag.v.x + (e.clientX - drag.x0) / drag.w * 100), y: r(drag.v.y + (e.clientY - drag.y0) / drag.h * 100) };
+    applyView();
+  });
+  $('bigcard').addEventListener('pointerup', () => { if (drag) { drag = null; saveDraft(); } });
+
+  // ---------- admin login ----------
+  const sha256 = async t => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  function showPending() {
+    if (!isAdmin) return;
+    const changed = JSON.stringify(draft) !== JSON.stringify(published);
+    $('pending').textContent = changed ? 'You have unpublished changes. Download overrides.json and upload it to the repo to publish them.' : 'No unpublished changes.';
+  }
+  function setAdmin(v) {
+    isAdmin = v;
+    if (v && !draft) { try { draft = JSON.parse(localStorage.getItem('overrides-draft')); } catch {} draft ||= structuredClone(published); }
+    $('adminbar').hidden = !v; $('adminlinkwrap').hidden = v; $('adminform').hidden = true;
+    try { v ? localStorage.setItem('admin', '1') : localStorage.removeItem('admin'); } catch {}
+    showPending();
+    render();
+  }
+  $('adminlink').onclick = e => { e.preventDefault(); $('adminform').hidden = !$('adminform').hidden; $('apw').focus(); };
+  $('adminform').onsubmit = async e => {
+    e.preventDefault();
+    const ok = await sha256('wingspan-admin:' + $('apw').value) === ADMIN_HASH;
+    $('apwerr').textContent = ok ? '' : 'Wrong admin password.'; $('apw').value = '';
+    if (ok) setAdmin(true);
+  };
+  $('adminout').onclick = e => { e.preventDefault(); setAdmin(false); };
+  $('dlover').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(draft, null, 1)], { type: 'application/json' }));
+    a.download = 'overrides.json'; a.click();
+  };
 
   // ---------- login: the art is published only encrypted (art-enc/, see build.py); the password unlocks it here ----------
   let authed = false, artKey = null;
@@ -483,6 +580,8 @@
     setAuthed(false);
   };
   (async () => {  // stay logged in on this device
+    try { published = await (await fetch('overrides.json', { cache: 'no-cache' })).json(); } catch {}
+    try { if (localStorage.getItem('admin') === '1') { isAdmin = true; setAdmin(true); } } catch {}
     let saved = null;
     try { saved = localStorage.getItem('artkey'); } catch {}
     try { if (saved) { await useKey(unb64(saved)); return setAuthed(true); } } catch {}

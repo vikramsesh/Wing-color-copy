@@ -15,7 +15,8 @@ from PIL import Image
 
 HABITATS = ["Forest", "Grassland", "Wetland"]
 FOODS = ["Invertebrate", "Seed", "Fish", "Fruit", "Rodent", "Nectar", "Wild (food)"]
-PROMPTS = ["a bird", "a tree branch or trunk", "berries, leaves or flowers", "handwritten signature or logo", "plain white paper"]
+PROMPTS = ["a bird", "a tree branch or trunk", "berries, leaves or flowers", "handwritten signature or logo", "plain white paper",
+           "printed title text", "light blue sky background"]
 _clipseg = None
 
 
@@ -35,8 +36,11 @@ def bird_mask(img):
     mask = (up.argmax(0) == 0) & (up[0].sigmoid() > 0.3)
     px = np.asarray(img).astype(int)
     border = np.concatenate([px[:4].reshape(-1, 3), px[-4:].reshape(-1, 3), px[:, :4].reshape(-1, 3), px[:, -4:].reshape(-1, 3)])
-    paper = np.median(border, axis=0)  # white for the artists' scans, cream for the digital cards
-    not_paper = np.sqrt(((px - paper) ** 2).sum(axis=2)) > 40
+    # background colors to drop: the border's median (white paper / screen) and the crop's most common color
+    # (the cream card itself, which dominates the digital crops)
+    bins, counts = np.unique((px // 16).reshape(-1, 3), axis=0, return_counts=True)
+    papers = [np.median(border, axis=0), bins[counts.argmax()] * 16 + 8]
+    not_paper = np.all([np.sqrt(((px - p) ** 2).sum(axis=2)) > 40 for p in papers], axis=0)
     return mask.numpy() & (px.min(axis=2) < 235) & not_paper
 
 
@@ -82,7 +86,9 @@ def digital_for(name, shot, left, top, shots):
         urllib.request.urlretrieve(shots[shot], src)
     path = "art/d-" + norm(name) + ".jpg"
     if not os.path.exists(path):
-        Image.open(src).convert("RGB").crop((left + 15, top + 55, left + 322, top + 330)).save(path, quality=92)
+        # generous crop (whole card plus a margin) so birds that overflow the card or reach into the title aren't cut;
+        # the title text, icons and screen background are masked out below and can be panned away in the page
+        Image.open(src).convert("RGB").crop((left - 15, top + 10, left + 340, top + 345)).save(path, quality=92)
     img = Image.open(path).convert("RGB")
     pixels = np.asarray(img)[bird_mask(img)]
     return {"image": path, "palette": palette_from_pixels([tuple(p) for p in pixels.tolist()])}
