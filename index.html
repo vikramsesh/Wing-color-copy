@@ -387,14 +387,17 @@
     }).sort((x, y) => y.score - x.score).slice(0, 10);
     let html = `<section class="sec"><h3>Most similar overall <small>left chip = ${esc(cur.name)}, right chip = the match</small></h3>
       <div class="strip">${overall.map(o => tile(o.b, o.pairs.map(([, a, c]) => pairChip(a, c)).join(''))).join('')}</div></section>`;
-    // Per color: birds with the most of a color close to that one.
+    // Per color: every bird with at least 1% of a color in the same family (Orange ↔ Orange), however different the shade.
+    // Order: closest shade and most coverage first.
     html += mine.map(a => {
       const hits = others.map(({ b, p }) => {
-        const best = p.map(c => [c.pct * closeness(a, c, 30), c]).sort((x, y) => y[0] - x[0]);
-        return { b, score: best.reduce((s, x) => s + x[0], 0), c: best[0]?.[1] };
-      }).filter(h => h.score > 1).sort((x, y) => y.score - x.score).slice(0, 10);
-      return `<section class="sec" id="sec-${a.hex.slice(1)}"><h3><span class="sw" style="background:${a.hex}"></span>${a.name} <small>${a.hex} · ${Math.round(a.pct)}% of ${esc(cur.name)} · birds with the most of this color</small></h3>
-        ${hits.length ? `<div class="strip">${hits.map(h => tile(h.b, `${pairChip(a, h.c)} ${Math.round(h.c.pct)}%`)).join('')}</div>` : '<div class="empty">No other bird has much of this color.</div>'}</section>`;
+        const same = p.filter(c => c.name === a.name && c.pct >= 1);
+        if (!same.length) return null;
+        const scored = same.map(c => [c.pct * (1 - Math.min(dE(a.lab, c.lab), 90) / 100), c]).sort((x, y) => y[0] - x[0]);
+        return { b, score: scored.reduce((s, x) => s + x[0], 0), c: scored[0][1], pct: same.reduce((s, c) => s + c.pct, 0) };
+      }).filter(Boolean).sort((x, y) => y.score - x.score);
+      return `<section class="sec" id="sec-${a.hex.slice(1)}"><h3><span class="sw" style="background:${a.hex}"></span>${a.name} <small>${a.hex} · ${Math.round(a.pct)}% of ${esc(cur.name)} · ${hits.length} other bird${hits.length === 1 ? '' : 's'} with ${a.name.toLowerCase()} · closest shade and most coverage first</small></h3>
+        ${hits.length ? `<div class="strip">${hits.map(h => tile(h.b, `${pairChip(a, h.c)} ${Math.max(1, Math.round(h.pct))}%`)).join('')}</div>` : `<div class="empty">No other bird has any ${a.name.toLowerCase()}.</div>`}</section>`;
     }).join('');
     $('sims').innerHTML = html;
     hydrate($('sims'));
