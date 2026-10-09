@@ -20,7 +20,7 @@ The bird illustrations belong to their artists, Natalia Rojas and Ana María Mar
 Click **Admin** under the search box and log in with the admin password. In a bird's card view you can then:
 
 - remove colors that aren't part of the bird (× on a color) and restore them,
-- add colors by clicking the picture (in Artist's Palette mode, choose whether they go to the bird or its background),
+- add colors by typing them (a name like `yellow`, a hex code like `#3c7fd0`, or any CSS color name) or by clicking the picture; in Artist's Palette mode, choose whether they go to the bird or its background,
 - force the 🖌️ Artist's Palette flag on or off (or leave it automatic), and
 - zoom and drag the picture (**Picture position**) so the whole bird shows.
 

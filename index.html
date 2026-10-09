@@ -133,6 +133,8 @@
   .admin h4 { margin: 0; font: 700 20px var(--hand); }
   .admin .ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .admin input[type=range] { flex: 1; }
+  #colorin { flex: 1; min-width: 120px; font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; }
+  #colorprev { width: 26px; height: 22px; border-radius: 3px; border: 1px solid rgb(0 0 0 / .2); background: repeating-linear-gradient(45deg, #eee 0 4px, #fff 4px 8px); }
   .btn.light[aria-pressed="true"] { background: var(--ink); color: #fff; }
   .adminbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; margin-top: 8px; padding: 6px 8px; background: #fff3d6; border-radius: 4px; }
   .adminbar b { font: 700 18px var(--hand); }
@@ -220,12 +222,18 @@
           <div class="admin" id="adminpanel" hidden>
             <div id="artistadmin"><h4>Artist's Palette flag</h4>
               <div class="ctl"><select id="flagsel" aria-label="Artist's Palette flag"><option value="">Automatic (from the food colors)</option><option value="1">Always flag 🖌️</option><option value="0">Never flag</option></select></div></div>
-            <div class="ctl" id="addtarget">Clicking the picture adds to:
+            <h4>Add a color</h4>
+            <form class="ctl" id="addcolor" autocomplete="off">
+              <input id="colorin" list="colornames" placeholder="Yellow, red, #3c7fd0, teal…" aria-label="Color to add">
+              <span class="sw" id="colorprev"></span><button class="btn">Add</button></form>
+            <datalist id="colornames"></datalist>
+            <div class="hint" id="colorhint">Type a color name or hex code, or click the picture.</div>
+            <div class="ctl" id="addtarget">New colors go to:
               <button class="btn light" data-target="bird" aria-pressed="true">Bird</button><button class="btn light" data-target="bg" aria-pressed="false">Background</button></div>
-            <h4>Picture position</h4>
+            <div id="posadmin"><h4>Picture position</h4>
             <div class="ctl"><button class="btn light" id="move" aria-pressed="false">Move picture</button><button class="btn light" id="viewreset">Reset</button></div>
             <div class="ctl"><label for="zoom">Zoom</label><input type="range" id="zoom" min="0.5" max="3" step="0.05" value="1"><span id="zoomv">1.00×</span></div>
-            <div class="hint">Turn on "Move picture", then drag the image. Saved for this bird in this image set.</div>
+            <div class="hint">Turn on "Move picture", then drag the image. Saved for this bird in this image set.</div></div>
           </div>
         </div>
       </div>
@@ -300,8 +308,23 @@
   }
   [['#ff0000','Red'],['#2ab3e5','Blue'],['#ffd700','Yellow'],['#8b4513','Brown'],['#ffc0cb','Pink'],['#808080','Gray'],['#ffffff','White'],
    ['#000000','Black'],['#228b22','Green'],['#800080','Purple'],['#ffa500','Orange'],['#e89ab0','Pink'],['#26252a','Black'],
-   ['#d4bdb6','Beige'],['#ec967c','Orange'],['#f3ced3','Pink'],['#cd434f','Red']]
+   ['#d4bdb6','Beige'],['#ec967c','Orange'],['#f3ced3','Pink'],['#cd434f','Red'],
+   ...Object.entries({ Black: '#1a1a1a', White: '#f5f5f5', Gray: '#999999', Beige: '#ddd0bb', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e',
+     Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' }).map(([n, h]) => [h, n])]
     .forEach(([hex, want]) => console.assert(colorName(hex) === want, `colorName(${hex}) = ${colorName(hex)}, want ${want}`));
+
+  // Typed colors (admin): one of our names -> a standard shade of it; otherwise any hex code or CSS color name.
+  const CANON = { Black: '#1a1a1a', White: '#f5f5f5', Gray: '#999999', Beige: '#ddd0bb', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e',
+    Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
+  function parseColor(text) {
+    const t = text.trim(); if (!t) return null;
+    const name = NAMES.find(n => n.toLowerCase() === t.toLowerCase() || (n === 'Gray' && t.toLowerCase() === 'grey'));
+    if (name) return CANON[name];
+    const g = document.createElement('canvas').getContext('2d');
+    g.fillStyle = '#010203'; g.fillStyle = t;  // the browser ignores anything that isn't a color
+    const v = g.fillStyle;
+    return v !== '#010203' && /^#[0-9a-f]{6}$/.test(v) ? v : t.toLowerCase() === '#010203' ? '#010203' : null;
+  }
 
   // ---------- admin curation: removed colors + picture position ----------
   // Published for everyone in overrides.json ({set: {sci: {removed: [hex], view: {x, y, z}}}}). The admin edits a draft
@@ -484,7 +507,9 @@
     const at = shownList.indexOf(b);
     $('navpos').textContent = at >= 0 ? `${at + 1} of ${shownList.length}` + (filterSummary() || q.value.trim() ? ' matching your search/filters' : '') : 'not in the current results';
     renderSide();
-    $('adminpanel').hidden = !(isAdmin && authed && b.art);
+    $('adminpanel').hidden = !(isAdmin && b.art);
+    $('posadmin').hidden = !authed;
+    $('colorin').value = ''; $('colorin').oninput();
     $('artistadmin').hidden = $('addtarget').hidden = MODE !== 'palette';
     $('flagsel').value = curOf(b).flag === undefined ? '' : curOf(b).flag ? '1' : '0';
     setMoving(false);
@@ -500,10 +525,8 @@
     cv.addEventListener('mousemove', e => { if (moving) return; const hex = colorAt(e); if (hex) { $('loupe').style.background = hex; $('hover').textContent = `${colorName(hex)} ${hex} · click to add`; } });
     cv.addEventListener('click', e => {
       if (moving) return; const hex = colorAt(e); if (!hex) return;
-      if (isAdmin) {  // admin: published for everyone, to the bird or (Artist's Palette) the background
-        const d = draftOf(cur), key = MODE === 'palette' && addTarget === 'bg' ? 'bgAdded' : 'added';
-        d[key] = [...new Set([...(d[key] || []), hex])]; saveDraft();
-      } else { editOf(cur).added.push(hex); save(); }
+      if (isAdmin) adminAdd(hex);
+      else { editOf(cur).added.push(hex); save(); }
       renderSide(); toast(`Added ${colorName(hex)} ${hex}` + (isAdmin && MODE === 'palette' && addTarget === 'bg' ? ' to the background' : ''));
     });
   }
@@ -594,6 +617,25 @@
     const r = e.target.closest('.row'); if (r && r.dataset.kind === 'bird' && MODE === 'copy') $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   let addTarget = 'bird';
+  const toBackground = () => MODE === 'palette' && addTarget === 'bg';
+  function adminAdd(hex) {  // published for everyone, to the bird or (Artist's Palette) the background
+    const d = draftOf(cur), key = toBackground() ? 'bgAdded' : 'added';
+    d[key] = [...new Set([...(d[key] || []), hex])]; saveDraft();
+  }
+  $('colornames').innerHTML = NAMES.map(n => `<option value="${n}">`).join('');
+  $('colorin').oninput = () => {
+    const hex = parseColor($('colorin').value);
+    $('colorprev').style.background = hex || '';
+    $('colorhint').textContent = !$('colorin').value.trim() ? 'Type a color name or hex code, or click the picture.'
+      : hex ? `Adds ${colorName(hex)} ${hex} to the ${toBackground() ? 'background' : 'bird'}.` : 'Not a color I recognize. Try a name like "yellow" or a hex code like #3c7fd0.';
+  };
+  $('addcolor').onsubmit = e => {
+    e.preventDefault();
+    const hex = parseColor($('colorin').value); if (!hex || !isAdmin) return $('colorin').oninput();
+    adminAdd(hex); renderSide();
+    toast(`Added ${colorName(hex)} ${hex}` + (toBackground() ? ' to the background' : ''));
+    $('colorin').value = ''; $('colorin').oninput(); $('colorin').focus();
+  };
   $('addtarget').addEventListener('click', e => {
     const t = e.target.dataset.target; if (!t) return;
     addTarget = t; $('addtarget').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.target === t));
