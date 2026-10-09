@@ -287,7 +287,9 @@
    ]
   },
   "Calypte anna": {
-   "bgAdded": [],
+   "bgAdded": [
+    "#b6948f"
+   ],
    "added": [
     "#ef4db4",
     "#11ef68",
