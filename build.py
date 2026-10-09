@@ -278,7 +278,8 @@ if __name__ == "__main__":
             "power": card["Power text"], "color": card["Color"], "eggs": int(card["Egg limit"] or 0), "flavor": card["Flavor text"],
             "habitats": [h for h in HABITATS if card[h]],
             "food": {f.replace(" (food)", ""): int(card[f]) for f in FOODS if card[f]},
-            "foodOr": bool(card["/ (food cost)"]),  # the game shows "/" (pay one of them) instead of "+"
+            "foodOr": bool(card["/ (food cost)"]),
+            "beak": card["Beak direction"] or "",  # L, R, N (neither: facing forward) or LR (both)  # the game shows "/" (pay one of them) instead of "+"
             "art": None, "digital": None,
         }
         if norm(name) in digital:
