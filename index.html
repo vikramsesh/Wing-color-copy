@@ -74,9 +74,13 @@
   .big .serial { font-size: 12px; }
   .csci { font-style: italic; font-size: 11px; color: var(--muted); }
   .cmid { position: relative; display: flex; }
-  .stats { width: 46px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0 0 8px; font-size: 13px; }
-  .stats b { font: 700 24px/1 var(--hand); }
-  .stats .eggs { letter-spacing: -2px; color: #9c907c; font-size: 11px; }
+  .stats { width: 46px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0 0 8px; font-size: 13px; }
+  .stats .vp { display: flex; align-items: center; gap: 1px; }
+  .stats b { font: 700 26px/1 var(--hand); color: #5b5340; }
+  .stats .vp .gi { height: 30px; }
+  .stats .nest .gi { height: 30px; }
+  .cmid .eggs { position: absolute; left: 10px; bottom: 2px; display: flex; gap: 3px; color: #9c907c; font-size: 11px; letter-spacing: -2px; }
+  .cmid .eggs .gi { height: 13px; }
   .frame { position: relative; flex: 1; border: 0; padding: 0; background: none; cursor: zoom-in; min-width: 0; }
   .frame { overflow: hidden; }
   .pan { position: relative; transform-origin: center; }
@@ -113,7 +117,7 @@
   @media (max-width: 820px) { .dtop { grid-template-columns: 1fr; } }
   .big { font-size: 14px; }
   .big .cname { font-size: 34px; } .big .csci { font-size: 14px; } .big .hab { font-size: 22px; } .big .hab .habs .gi { height: 32px; } .big .hab .food .gi { height: 24px; } .big .hab .food { font-size: 15px; } .big .sep { font-size: 16px; }
-  .big .stats { width: 64px; font-size: 16px; } .big .stats b { font-size: 34px; }
+  .big .stats { width: 64px; font-size: 16px; } .big .stats b { font-size: 38px; } .big .stats .vp .gi, .big .stats .nest .gi { height: 42px; } .big .cmid .eggs .gi { height: 18px; }
   .stage { position: relative; flex: 1; min-width: 0; overflow: hidden; }
   .stage.moving, .stage.moving canvas { cursor: move !important; }
   .stage canvas { width: 100%; max-height: 62vh; aspect-ratio: 1; object-fit: contain; display: block; }
@@ -282,15 +286,19 @@
   const ICON = { card: '🃏', egg: '🥚', die: '🎲', predator: '🦅', forest: '🌲', grassland: '🌾', wetland: '💧', ...Object.fromEntries(Object.entries(FOOD).map(([k, v]) => [k.toLowerCase(), v])), ...NEST };
   // The game's own habitat/food icons (cropped from the digital edition, published encrypted like the art): shown once
   // logged in; emoji before that.
-  const GAME_ICONS = new Set(['forest', 'grassland', 'wetland', 'seed', 'invertebrate', 'fish', 'fruit', 'rodent', 'wild']);
+  const GAME_ICONS = new Set(['forest', 'grassland', 'wetland', 'seed', 'invertebrate', 'fish', 'fruit', 'rodent', 'wild',
+    'vp', 'egg', 'nest-bowl', 'nest-cavity', 'nest-ground', 'nest-platform', 'nest-wild']);
   const gameIcon = (key, emoji, label) => authed && GAME_ICONS.has(key) ? `<img class="gi" data-icon="${key}" alt="${label}" title="${label}">` : `<span title="${label}">${emoji}</span>`;
   const habIcon = h => gameIcon(h.toLowerCase(), HAB[h], h);
   // The cards list food as: omnivore (wild) first, then fish, cherry, worm, (nectar,) rat, wheat.
   const FOOD_ORDER = ['Wild', 'Fish', 'Fruit', 'Invertebrate', 'Nectar', 'Rodent', 'Seed'];
   const foodsInGameOrder = b => Object.entries(b.food).sort(([x], [y]) => FOOD_ORDER.indexOf(x) - FOOD_ORDER.indexOf(y));
   const foodIcon = f => gameIcon(f.toLowerCase(), FOOD[f], { Seed: 'Wheat', Fruit: 'Cherry', Rodent: 'Rat', Invertebrate: 'Worm', Fish: 'Fish', Wild: 'Omnivore', Nectar: 'Nectar' }[f]);
-  const ICON_LABEL = { seed: 'Wheat', fruit: 'Cherry', rodent: 'Rat', invertebrate: 'Worm', fish: 'Fish', wild: 'Omnivore', nectar: 'Nectar', forest: 'Forest', grassland: 'Grassland', wetland: 'Wetland' };
-  const powerText = t => esc(t).replace(/\[(\w+)\]/g, (m, k) => GAME_ICONS.has(k) ? gameIcon(k, ICON[k], ICON_LABEL[k] || k) : ICON[k] ? `<span title="${ICON_LABEL[k] || k}">${ICON[k]}</span>` : m);
+  const ICON_LABEL = { egg: 'Egg', bowl: 'Bowl nest', cavity: 'Cavity nest', ground: 'Ground nest', platform: 'Platform nest', seed: 'Wheat', fruit: 'Cherry', rodent: 'Rat', invertebrate: 'Worm', fish: 'Fish', wild: 'Omnivore', nectar: 'Nectar', forest: 'Forest', grassland: 'Grassland', wetland: 'Wetland' };
+  const powerText = t => esc(t).replace(/\[(\w+)\]/g, (m, k) => {
+    const key = NEST[k] && !['none', 'wild'].includes(k) ? 'nest-' + k : k;  // [bowl] -> bowl nest badge; [wild] stays the omnivore food
+    return GAME_ICONS.has(key) ? gameIcon(key, ICON[k], ICON_LABEL[k] || k) : ICON[k] ? `<span title="${ICON_LABEL[k] || k}">${ICON[k]}</span>` : m;
+  });
   const NAMES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Brown', 'White', 'Black', 'Gray'];
   const NAME_HEX = { Black: '#222', White: '#fff', Gray: '#999', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e', Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
 
@@ -348,7 +356,9 @@
   // Published for everyone in overrides.json ({set: {sci: {removed: [hex], view: {x, y, z}}}}). The admin edits a draft
   // in this browser and publishes it by uploading the downloaded overrides.json to the repo.
   // ponytail: the admin password only gates the UI here; the real gate is write access to the repo.
-  const ADMIN_HASH = '29544893c720e51f2c6da255c167887722e245176bf4f282cda41e5416983b90';  // sha256('wingspan-admin:' + password)
+  // Admin password check: PBKDF2-SHA256, 600k rounds, random salt (slow to brute-force; the password itself isn't stored).
+  // To change it, recompute with the same settings (see README) and replace salt + hash.
+  const ADMIN_KDF = { salt: 'kpmHZJyVQ5zlPKPPHYho2g==', iterations: 600000, hash: '61fc1dc27fdc031198bb166750b1aace515eeca10fa44129f9de671e5fc21dc2' };
   let published = {}, draft = null, isAdmin = false;
   const overridesOf = () => (isAdmin ? draft : published)[SET] || {};
   const curOf = b => overridesOf()[b.sci] || {};
@@ -363,7 +373,11 @@
   try { edits = JSON.parse(localStorage.getItem(EDITS)) || {}; } catch {}
   const save = () => { try { localStorage.setItem(EDITS, JSON.stringify(edits)); } catch {} };
   const editOf = b => edits[b.sci] ||= { removed: [], added: [] };
-  const norm100 = all => { const tot = all.reduce((s, p) => s + p.pct, 0) || 1; return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) })); };
+  const NEUTRAL_ORDER = ['Black', 'White', 'Gray'];  // listed after the primary colors
+  const colorRank = c => NEUTRAL_ORDER.indexOf(c.name) + 1;  // 0 = a primary color
+  const norm100 = all => { const tot = all.reduce((s, p) => s + p.pct, 0) || 1;
+    return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) }))
+      .sort((a, b) => colorRank(a) - colorRank(b) || b.pct - a.pct); };
   // Bird colors: extracted palette, minus admin removals, plus admin-added (published) and your own added colors.
   function pal(b) {
     const o = curOf(b), e = edits[b.sci] || {}, rm = new Set(o.removed || []);
@@ -440,7 +454,9 @@
         <div class="banner"><div class="cname">${esc(b.name)}</div><div class="csci">${esc(b.sci)}</div><div class="serial">${serial(b)}</div></div>
       </div>
       <div class="cmid">
-        <div class="stats"><b>${b.points}</b><span title="${esc(b.nest)} nest">${NEST[b.nest] ?? ''}</span><span class="eggs" title="egg limit">${'●'.repeat(b.eggs)}</span></div>
+        <div class="stats"><div class="vp" title="${b.points} victory points"><b>${b.points}</b>${gameIcon('vp', '', 'Victory points')}</div>
+          <div class="nest">${b.nest && b.nest !== 'none' ? gameIcon('nest-' + b.nest, NEST[b.nest], b.nest[0].toUpperCase() + b.nest.slice(1) + ' nest') : ''}</div></div>
+        <div class="eggs" title="Egg limit: ${b.eggs}">${Array(b.eggs).fill(gameIcon('egg', '●', 'Egg')).join('')}</div>
         ${art}
         ${MODE === 'palette' && isArtist(b) ? `<span class="brush" title="Artist's Palette: ${artistPoints(b)} points">🖌️<b>${artistPoints(b)}</b></span>` : ''}
         <div class="ws">${b.wingspan}cm</div>
@@ -731,7 +747,13 @@
   $('bigcard').addEventListener('pointerup', () => { if (drag) { drag = null; saveDraft(); } });
 
   // ---------- admin login ----------
-  const sha256 = async t => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  async function adminPasswordOk(pw) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: unb64(ADMIN_KDF.salt), iterations: ADMIN_KDF.iterations, hash: 'SHA-256' }, base, 256);
+    const hex = [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
+    let diff = 0; for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ ADMIN_KDF.hash.charCodeAt(i);
+    return diff === 0 && hex.length === ADMIN_KDF.hash.length;
+  }
   function showPending() {
     if (!isAdmin) return;
     const changed = JSON.stringify(draft) !== JSON.stringify(published);
@@ -751,7 +773,8 @@
   $('adminlink').onclick = e => { e.preventDefault(); $('adminform').hidden = !$('adminform').hidden; $('apw').focus(); };
   $('adminform').onsubmit = async e => {
     e.preventDefault();
-    const ok = await sha256('wingspan-admin:' + $('apw').value) === ADMIN_HASH;
+    $('apwerr').textContent = 'Checking…';
+    const ok = await adminPasswordOk($('apw').value);
     $('apwerr').textContent = ok ? '' : 'Wrong admin password.'; $('apw').value = '';
     if (ok) setAdmin(true);
   };
@@ -807,11 +830,23 @@
     renderFilters();
     render();
   }
-  async function useKey(raw) {
-    artKey = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+  async function useKey(key) {  // key: raw bytes, or an already-imported CryptoKey
+    artKey = key instanceof CryptoKey ? key : await crypto.subtle.importKey('raw', key, 'AES-GCM', false, ['decrypt']);  // not extractable
     const meta = await (await fetch('art-enc/meta.json')).json();
     await unseal(unb64(meta.check).buffer);  // throws if the key is wrong
   }
+  // Remember the login as a non-extractable key in IndexedDB: the page can decrypt with it, but nothing can read it out.
+  function keyStore(mode, fn) {
+    return new Promise((res, rej) => {
+      const open = indexedDB.open('wingspan', 1);
+      open.onupgradeneeded = () => open.result.createObjectStore('keys');
+      open.onerror = () => rej(open.error);
+      open.onsuccess = () => { const tx = open.result.transaction('keys', mode), r = fn(tx.objectStore('keys')); tx.oncomplete = () => res(r?.result); tx.onerror = () => rej(tx.error); };
+    });
+  }
+  const saveKey = k => keyStore('readwrite', s => s.put(k, 'art')).catch(() => {});
+  const loadKey = () => keyStore('readonly', s => s.get('art')).catch(() => null);
+  const forgetKey = () => keyStore('readwrite', s => s.delete('art')).catch(() => {});
   $('login').onsubmit = async e => {
     e.preventDefault();
     $('pwerr').textContent = 'Checking…';
@@ -820,7 +855,7 @@
       const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('pw').value), 'PBKDF2', false, ['deriveBits']);
       const raw = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: unb64(meta.salt), iterations: meta.iterations, hash: 'SHA-256' }, base, 256);
       await useKey(raw);
-      try { localStorage.setItem('artkey', btoa(String.fromCharCode(...new Uint8Array(raw)))); } catch {}
+      await saveKey(artKey);
       $('pwerr').textContent = ''; $('pw').value = '';
       setAuthed(true);
     } catch { $('pwerr').textContent = 'Wrong password.'; }
@@ -828,6 +863,7 @@
   $('logout').onclick = e => {
     e.preventDefault();
     try { localStorage.removeItem('artkey'); } catch {}
+    forgetKey();
     artCache.forEach(p => p.then(URL.revokeObjectURL, () => {})); artCache.clear(); artKey = null;
     setAuthed(false);
   };
@@ -837,9 +873,12 @@
     try { if (localStorage.getItem('admin') === '1') { isAdmin = true; setAdmin(true); } } catch {}
     $('sets').hidden = !digitalAllowed();
     if (SET === 'digital' && !digitalAllowed()) return location.replace(linkTo('art', MODE));  // hidden from visitors
-    let saved = null;
-    try { saved = localStorage.getItem('artkey'); } catch {}
-    try { if (saved) { await useKey(unb64(saved)); return setAuthed(true); } } catch {}
+    try {
+      const stored = await loadKey();
+      if (stored) { await useKey(stored); return setAuthed(true); }
+      const old = localStorage.getItem('artkey');  // logins saved by the older version: move them to the safe store
+      if (old) { await useKey(unb64(old)); await saveKey(artKey); localStorage.removeItem('artkey'); return setAuthed(true); }
+    } catch {}
     setAuthed(false);
   })();
 </script>

@@ -25,6 +25,17 @@ Click **Admin** under the search box and log in with the admin password. In a bi
 
 Your changes are saved in your browser as a draft. To publish them for everyone, click **Download overrides.json**, then upload that file to the root of this repo (on GitHub: **Add file → Upload files**, replacing the existing `overrides.json`). Visitors who aren't admin can't remove colors. They can still add colors in their own browser by clicking the bird.
 
+## Passwords
+
+Neither password is stored anywhere in this repo.
+
+- **Art password:** the art is encrypted with a key derived from it (PBKDF2-SHA256, 600,000 rounds). After logging in, the browser keeps only a non-extractable key in IndexedDB, which can decrypt but can't be read back out. To change it: `WINGSPAN_PASSWORD=<new> python build.py` after deleting `art-enc/` (everything is re-encrypted), then commit `art-enc/`.
+- **Admin password:** `index.html` holds only a salted PBKDF2-SHA256 hash (`ADMIN_KDF`). To change it, run
+  `python -c "import hashlib,os,base64;s=os.urandom(16);print(base64.b64encode(s).decode(), hashlib.pbkdf2_hmac('sha256', b'NEW-PASSWORD', s, 600000).hex())"`
+  and put the two printed values into `ADMIN_KDF.salt` and `ADMIN_KDF.hash`. The admin password only unlocks the editing tools; publishing still needs write access to this repo.
+
+Use long, random passphrases and keep them in a password manager.
+
 ## Credits
 
 - Card data: [Wingsearch](https://github.com/navarog/wingsearch) (GPLv3), downloaded at build time.
