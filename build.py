@@ -189,6 +189,31 @@ def digital_cutout(path):
     return out
 
 
+def artist_cutout(path):
+    """Bird + scenery of an artist image with everything else transparent (WebP, 700px), shown on top of the original
+    so the page can fade the background with a slider."""
+    from scipy import ndimage
+    out = path.replace("art/", "art/ap-")[:-4] + ".webp"
+    if not os.path.exists(out):
+        img = Image.open(path).convert("RGB")
+        img.thumbnail((700, 700))
+        small = img.copy(); small.thumbnail((500, 500))
+        bird, bg = masks(small, raw=True)
+        # trim the white-paper rim the model's outline includes, then refill white feathers enclosed by the outline
+        bird = ndimage.binary_fill_holes(bird & (np.asarray(small).min(axis=2) < 238))
+        keep = bird | ndimage.binary_dilation(bg, iterations=1)
+        labels, n = ndimage.label(keep)
+        if n:
+            idx = np.arange(1, n + 1)
+            size = ndimage.sum(np.ones_like(labels), labels, idx)
+            touches = ndimage.maximum(ndimage.binary_dilation(bird, iterations=3).astype(np.uint8), labels, idx).astype(bool)
+            keep = np.isin(labels, idx[touches | (size > 400)])
+        alpha = Image.fromarray((ndimage.uniform_filter(keep.astype(float), 3) * 255).astype(np.uint8)).resize(img.size, Image.BILINEAR)
+        rgba = img.convert("RGBA"); rgba.putalpha(alpha)
+        rgba.save(out, "WEBP", quality=85)
+    return out
+
+
 def encrypt_art(password):
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     from cryptography.hazmat.primitives.hashes import SHA256
@@ -211,8 +236,8 @@ def encrypt_art(password):
             return encrypt_art(password)
     meta["check"] = meta.get("check") or b64(seal(b"wingspan"))
     # card art (art/*.jpg) and the game's habitat/food icons cropped from the Steam screenshots (art/icons/*.png -> icon-*.bin)
-    # (the raw digital crops art/d-*.jpg only feed the palettes; the page shows their cut-outs art/dp-*.png)
-    files = [("art/" + f, "art-enc/" + f[:-4] + ".bin") for f in os.listdir("art") if f.endswith((".jpg", ".png")) and not f.startswith("d-")]
+    # originals (art/*.jpg, art/d-*.jpg) and their bird+scenery cut-outs (art/ap-*.webp, art/dp-*.png) for the fade slider
+    files = [("art/" + f, "art-enc/" + f.rsplit(".", 1)[0] + ".bin") for f in os.listdir("art") if f.endswith((".jpg", ".png", ".webp"))]
     if os.path.isdir("art/icons"):
         files += [("art/icons/" + f, "art-enc/icon-" + f[:-4] + ".bin") for f in os.listdir("art/icons") if f.endswith(".png")]
     for src, out in sorted(files):
@@ -273,6 +298,8 @@ if __name__ == "__main__":
                 bird["art"]["marksChecked"] = True
             if "bgPalette" not in bird["art"]:
                 bird["art"]["bgPalette"] = bg_palette(bird["art"]["image"])
+            if "cutout" not in bird["art"]:
+                bird["art"]["cutout"] = artist_cutout(bird["art"]["image"])
         birds.append(bird)
     birds.sort(key=lambda b: b["name"])
     with open("birds.js", "w", encoding="utf-8") as f:

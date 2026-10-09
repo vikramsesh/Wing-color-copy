@@ -79,7 +79,13 @@
   .stats .eggs { letter-spacing: -2px; color: #9c907c; font-size: 11px; }
   .frame { position: relative; flex: 1; border: 0; padding: 0; background: none; cursor: zoom-in; min-width: 0; }
   .frame { overflow: hidden; }
-  .pan { position: relative; transform-origin: center; mix-blend-mode: multiply; }  /* white paper / transparency -> card color */
+  .pan { position: relative; transform-origin: center; }
+  /* Background fade: the original picture at --bgop opacity, with a cut-out of just the bird + perch on top at full strength. */
+  .base, #cv { opacity: var(--bgop, 1); }
+  img.cut { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  html.fullbg img.cut { display: none; }
+  .fadebox { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .fadebox input { flex: 1; max-width: 220px; }
   .frame img, .frame canvas { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; }
   .frame canvas { position: absolute; inset: 0; height: 100%; mix-blend-mode: normal; pointer-events: none; }
   .noart { flex: 1; aspect-ratio: 1; display: grid; place-items: center; color: var(--muted); font: 700 20px var(--hand); opacity: .5; }
@@ -191,6 +197,7 @@
       <div class="count"><span id="shown">180</span><small id="countnote">birds shown</small></div>
       <button class="toggle" id="toggle" aria-expanded="false" aria-label="Show filters">⌄</button>
     </div>
+    <label class="hint fadebox">Background <input type="range" id="bgop" min="0" max="100" step="5" value="100" aria-label="Background opacity"><span id="bgopv">100%</span></label>
     <div class="hint" id="modehint">Hover a color to see where it is on the bird · click a card to edit its palette and find birds with similar colors</div>
     <form class="login" id="login" hidden><span>🔒 The card art is private.</span>
       <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password"><button class="btn">Log in</button><span id="pwerr" class="err"></span></form>
@@ -415,8 +422,8 @@
   function cardHTML(b, i, big = false) {
     const art = !b.art ? (big ? '<div class="noart">no card art</div>' : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="noart">no card art</div></button>`)
       : !authed ? `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="locked">🔒<br>log in to see the art</div></button>`
-      : big ? `<div class="stage" id="stage"><div class="pan" id="bigpan" style="${panStyle(b)}"><canvas id="cv" aria-label="Click the bird to add a color"></canvas><canvas id="heatBig" hidden></canvas></div></div>`
-      : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt="${esc(b.name)}"><canvas hidden></canvas></div></button>`;
+      : big ? `<div class="stage" id="stage"><div class="pan" id="bigpan" style="${panStyle(b)}"><canvas id="cv" aria-label="Click the bird to add a color"></canvas>${cutKey(b) ? `<img class="cut" data-art="${cutKey(b)}" data-cut alt="">` : ''}<canvas id="heatBig" hidden></canvas></div></div>`
+      : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="pan" style="${panStyle(b)}"><img class="base" data-art="${keyOf(b)}" alt="${esc(b.name)}">${cutKey(b) ? `<img class="cut" data-art="${cutKey(b)}" data-cut alt="">` : ''}<canvas hidden></canvas></div></button>`;
     return `<article class="card ${big ? 'big' : ''}">
       <div class="ctop">
         <div class="hab"><div class="habs">${b.habitats.map(habIcon).join('')}</div>
@@ -493,7 +500,7 @@
   grid.addEventListener('mouseover', e => {
     const hex = e.target.dataset.hex; if (!hex || !authed) return;
     const card = e.target.closest('.card');
-    const src = card.querySelector('.frame img')?.getAttribute('src');
+    const src = card.querySelector('.frame img.base')?.getAttribute('src');
     if (src) drawHeat(card.querySelector('.frame canvas'), src, hex, 300);
   });
   grid.addEventListener('mouseout', e => { const c = e.target.dataset.hex && authed && e.target.closest('.card').querySelector('.frame canvas'); if (c) clearHeat(c); });
@@ -569,7 +576,7 @@
   // Similar birds, one section per comparison so it's clear which color matched.
   function renderSims() {
     const mine = pal(cur), others = BIRDS.filter(b => b !== cur && passes(b)).map(b => ({ b, p: pal(b) })).filter(o => o.p.length || bgPal(o.b).length);
-    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${!b.art ? '<div class="locked">no card art</div>' : authed ? `<div class="tframe"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt=""></div></div>` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
+    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${!b.art ? '<div class="locked">no card art</div>' : authed ? `<div class="tframe"><div class="pan" style="${panStyle(b)}"><img class="base" data-art="${keyOf(b)}" alt="">${cutKey(b) ? `<img class="cut" data-art="${cutKey(b)}" data-cut alt="">` : ''}</div></div>` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
     const pairChip = (a, c) => `<span class="pair" title="${a.name} ${a.hex} ↔ ${c.name} ${c.hex}"><i style="background:${a.hex}"></i><i style="background:${c.hex}"></i>${c.name}</span>`;
     // Overall: shared coverage summed over every color pair; each tile lists the pairs that matched most.
     const overall = others.map(({ b, p }) => {
@@ -754,12 +761,13 @@
   // ---------- login: the art is published only encrypted (art-enc/, see build.py); the password unlocks it here ----------
   let authed = false, artKey = null;
   const artCache = new Map();
-  const keyOf = b => (b.art.cutout || b.art.image).slice(4, -4);  // "art/northerncardinal.jpg" -> "northerncardinal", "art/dp-x.png" -> "dp-x"
+  const keyOf = b => b.art.image.slice(4).replace(/\.\w+$/, '');  // "art/northerncardinal.jpg" -> "northerncardinal"
+  const cutKey = b => b.art?.cutout && b.art.cutout.slice(4).replace(/\.\w+$/, '');  // bird + perch cut-out: "ap-x" / "dp-x"
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
   const unseal = buf => crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, artKey, buf.slice(12));  // iv || ciphertext || tag
   function artURL(name) {  // decrypted image as a blob: URL, cached
     if (!artCache.has(name)) artCache.set(name, fetch(`art-enc/${name}.bin`).then(r => r.arrayBuffer()).then(unseal)
-      .then(d => URL.createObjectURL(new Blob([d], { type: /^(icon|dp)-/.test(name) ? 'image/png' : 'image/jpeg' }))));
+      .then(d => URL.createObjectURL(new Blob([d], { type: /^(icon|dp)-/.test(name) ? 'image/png' : /^ap-/.test(name) ? 'image/webp' : 'image/jpeg' }))));
     return artCache.get(name);
   }
   // decrypt images only as they scroll into view
@@ -768,9 +776,20 @@
     io.unobserve(e.target);
     artURL(e.target.dataset.art).then(u => e.target.src = u, () => {});
   }), { rootMargin: '400px' });
+  // Background opacity slider (saved in this browser). 100% = the original picture.
+  let bgop = 100;
+  try { bgop = +(localStorage.getItem('bgop') ?? 100); } catch {}
+  function setBgop(v) {
+    bgop = v; $('bgop').value = v; $('bgopv').textContent = v + '%';
+    document.documentElement.style.setProperty('--bgop', v / 100);
+    document.documentElement.classList.toggle('fullbg', v === 100);
+    try { localStorage.setItem('bgop', v); } catch {}
+    if (v < 100) hydrate(document.body);
+  }
+  $('bgop').oninput = () => setBgop(+$('bgop').value);
   function hydrate(root) {
     if (!authed) return;
-    root.querySelectorAll('img[data-art]:not([src])').forEach(i => io.observe(i));
+    root.querySelectorAll('img[data-art]:not([src])').forEach(i => { if (!(i.hasAttribute('data-cut') && bgop === 100)) io.observe(i); });  // cut-outs only once faded
     root.querySelectorAll('img[data-icon]:not([src])').forEach(i => artURL('icon-' + i.dataset.icon).then(u => i.src = u, () => {}));  // 9 small files, cached
   }
 
@@ -805,6 +824,7 @@
     artCache.forEach(p => p.then(URL.revokeObjectURL, () => {})); artCache.clear(); artKey = null;
     setAuthed(false);
   };
+  setBgop(bgop);
   (async () => {  // stay logged in on this device
     try { published = await (await fetch('overrides.json', { cache: 'no-cache' })).json(); } catch {}
     try { if (localStorage.getItem('admin') === '1') { isAdmin = true; setAdmin(true); } } catch {}
