@@ -21,9 +21,27 @@ DIGITAL_ART_AREA = (120, 80, 330, 305)  # x0, y0, x1, y1 inside a digital crop: 
 _clipseg = None
 
 
-def masks(img, area=None):
-    """(bird, background) boolean HxW masks. Bird: CLIPSeg ranks 'a bird' first. Background: it ranks a perch, foliage
-    or water/ground first. Both exclude paper and the card cream; digital crops pass `area` to stay inside the card."""
+MARKS = json.load(open("data/marks.json", encoding="utf-8"))["logos"] if os.path.exists("data/marks.json") else {}
+
+
+def artist_marks(name, scale, keep, bird):
+    """Pixels of the artist's marks, never used for colors: the AnaM logo (located per image in data/marks.json)
+    and signatures/text, i.e. small, separate, low-color marks on the paper that don't touch the bird."""
+    from scipy import ndimage
+    h, w = keep.shape
+    marks = np.zeros((h, w), bool)
+    if name in MARKS:
+        x0, y0, x1, y1 = (int(v * scale) for v in MARKS[name])
+        pad = int(10 * scale)
+        marks[max(0, y0 - pad):y1 + pad, max(0, x0 - pad):x1 + pad] = True
+    return marks, ndimage, h, w
+
+
+def masks(img, area=None, mark=None, raw=False):
+    """(bird, background, leaked) for an image. Bird: CLIPSeg ranks 'a bird' first. Background: anything else that
+    isn't paper, card cream, text or the artist's logo/signature. Digital crops pass `area` to stay inside the card;
+    artist images pass `mark` = (name, scale) so their logo and signature are ignored. `leaked` counts logo/signature
+    pixels that would otherwise have been used."""
     global _clipseg
     import torch
     if _clipseg is None:  # loaded only when there is new art to process
@@ -56,11 +74,39 @@ def masks(img, area=None):
     if area:
         inside = np.zeros(bg.shape, bool); inside[area[1]:area[3], area[0]:area[2]] = True
         bg &= inside
-    return mask & keep, bg
+    if raw:  # the model's own bird outline (keeps white feathers that look like paper) + background
+        return mask, bg
+    bird = mask & keep
+    if not mark:
+        return bird, bg, 0
+    marks, ndimage, h, w = artist_marks(*mark, keep, bird)
+    # signatures/text: separate components of non-paper pixels that are small, low in color and away from the bird
+    labels, n = ndimage.label(keep)
+    if n:
+        idx = np.arange(1, n + 1)
+        size = ndimage.sum(np.ones_like(labels), labels, idx)
+        sat = (px.max(axis=2) - px.min(axis=2)) / np.maximum(px.max(axis=2), 1)
+        mean_sat = ndimage.mean(sat, labels, idx)
+        touches = ndimage.maximum(ndimage.binary_dilation(bird, iterations=6).astype(np.uint8), labels, idx)
+        text = idx[(size < 0.004 * h * w) & (mean_sat < 0.3) & ~touches.astype(bool)]
+        marks |= np.isin(labels, text)
+    leaked = int(((bird | bg) & marks).sum())
+    return bird & ~marks, bg & ~marks, leaked
 
 
-def bird_mask(img):
-    return masks(img)[0]
+def bird_mask(img, mark=None):
+    return masks(img, mark=mark)[0]
+
+
+def artist_palettes(path):
+    """(bird palette, background palette, leaked pixels) for an artist image, ignoring its logo and signature."""
+    img = Image.open(path).convert("RGB")
+    full_w = img.width
+    img.thumbnail((500, 500))
+    bird, bg, leaked = masks(img, mark=(os.path.basename(path)[:-4], img.width / full_w))
+    px = np.asarray(img)
+    sample = lambda m: [tuple(p) for p in px[m].tolist()]
+    return palette_from_pixels(sample(bird)), (palette_from_pixels(sample(bg)) if bg.sum() >= 150 else []), leaked
 
 
 def bg_palette(path, area=None):
@@ -102,10 +148,8 @@ def art_for(name, uri, artist, site):
         img = Image.open(urllib.request.urlopen(req, timeout=60)).convert("RGB")
         img.thumbnail((1000, 1000))
         img.save(path, quality=90)
-    img = Image.open(path).convert("RGB")
-    pixels = np.asarray(img)[bird_mask(img)]
-    sample = pixels[::max(1, len(pixels) // 40000)].tolist()
-    return {"artist": artist, "site": site, "image": path, "palette": palette_from_pixels([tuple(p) for p in sample])}
+    palette, bg, _ = artist_palettes(path)
+    return {"artist": artist, "site": site, "image": path, "palette": palette, "bgPalette": bg, "marksChecked": True}
 
 
 def digital_for(name, shot, left, top, shots):
@@ -122,6 +166,27 @@ def digital_for(name, shot, left, top, shots):
     img = Image.open(path).convert("RGB")
     pixels = np.asarray(img)[bird_mask(img)]
     return {"image": path, "palette": palette_from_pixels([tuple(p) for p in pixels.tolist()])}
+
+
+def digital_cutout(path):
+    """Transparent PNG of a digital crop: only the bird and its perch/scenery stay; the card's cream, title,
+    icons and the screen around it become transparent, so the picture blends into the page's card."""
+    from scipy import ndimage
+    out = path.replace("/d-", "/dp-")[:-4] + ".png"
+    if not os.path.exists(out):
+        img = Image.open(path).convert("RGB")
+        bird, bg = masks(img, DIGITAL_ART_AREA, raw=True)
+        keep = ndimage.binary_fill_holes(bird) | ndimage.binary_dilation(bg, iterations=1)
+        # drop stray specks (card edge shading, dust): keep pieces that touch the bird or are reasonably big
+        labels, n = ndimage.label(keep)
+        if n:
+            idx = np.arange(1, n + 1)
+            size = ndimage.sum(np.ones_like(labels), labels, idx)
+            touches = ndimage.maximum(ndimage.binary_dilation(bird, iterations=3).astype(np.uint8), labels, idx).astype(bool)
+            keep = np.isin(labels, idx[touches | (size > 400)])
+        alpha = ndimage.uniform_filter(keep.astype(float), 3) * 255  # soft 1-2px edge
+        Image.fromarray(np.dstack([np.asarray(img), alpha.astype(np.uint8)]), "RGBA").save(out)
+    return out
 
 
 def encrypt_art(password):
@@ -146,7 +211,8 @@ def encrypt_art(password):
             return encrypt_art(password)
     meta["check"] = meta.get("check") or b64(seal(b"wingspan"))
     # card art (art/*.jpg) and the game's habitat/food icons cropped from the Steam screenshots (art/icons/*.png -> icon-*.bin)
-    files = [("art/" + f, "art-enc/" + f[:-4] + ".bin") for f in os.listdir("art") if f.endswith(".jpg")]
+    # (the raw digital crops art/d-*.jpg only feed the palettes; the page shows their cut-outs art/dp-*.png)
+    files = [("art/" + f, "art-enc/" + f[:-4] + ".bin") for f in os.listdir("art") if f.endswith((".jpg", ".png")) and not f.startswith("d-")]
     if os.path.isdir("art/icons"):
         files += [("art/icons/" + f, "art-enc/icon-" + f[:-4] + ".bin") for f in os.listdir("art/icons") if f.endswith(".png")]
     for src, out in sorted(files):
@@ -194,9 +260,17 @@ if __name__ == "__main__":
             bird["digital"] = old_digital.get(sci) or digital_for(name, *digital[norm(name)], steam["shots"])
             if "bgPalette" not in bird["digital"]:
                 bird["digital"]["bgPalette"] = bg_palette(bird["digital"]["image"], DIGITAL_ART_AREA)
+            if "cutout" not in bird["digital"]:  # what the page shows; palettes still come from the full crop
+                bird["digital"]["cutout"] = digital_cutout(bird["digital"]["image"])
         if norm(name) in art:
             uri, artist, site = art[norm(name)]
             bird["art"] = old.get(sci) or art_for(name, uri, artist, site)
+            if not bird["art"].get("marksChecked"):
+                palette, bg, leaked = artist_palettes(bird["art"]["image"])
+                if leaked > 20:  # the logo or signature had crept into the colors: use the clean palettes
+                    print("logo/signature removed from colors:", name, leaked, "px", flush=True)
+                    bird["art"]["palette"], bird["art"]["bgPalette"] = palette, bg
+                bird["art"]["marksChecked"] = True
             if "bgPalette" not in bird["art"]:
                 bird["art"]["bgPalette"] = bg_palette(bird["art"]["image"])
         birds.append(bird)

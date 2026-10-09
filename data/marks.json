@@ -1,0 +1,515 @@
+{
+"note": "AnaM artist logo location per image (x0, y0, x1, y1 in the 1000px art/ copy), found by template matching; ignored for colors",
+"logos": {
+"woodduck": [
+38,
+26,
+218,
+182
+],
+"americanrobin": [
+30,
+46,
+210,
+202
+],
+"americangoldfinch": [
+472,
+38,
+632,
+178
+],
+"bluegrosbeak": [
+26,
+34,
+206,
+190
+],
+"commonloon": [
+780,
+20,
+960,
+176
+],
+"baldeagle": [
+454,
+812,
+634,
+968
+],
+"acornwoodpecker": [
+40,
+766,
+240,
+940
+],
+"atlanticpuffin": [
+30,
+46,
+210,
+202
+],
+"brownpelican": [
+26,
+34,
+206,
+190
+],
+"americanbittern": [
+50,
+44,
+210,
+184
+],
+"americancrow": [
+30,
+830,
+190,
+970
+],
+"americankestrel": [
+40,
+808,
+220,
+964
+],
+"barnswallow": [
+36,
+478,
+216,
+634
+],
+"burrowingowl": [
+26,
+34,
+206,
+190
+],
+"barrowsgoldeneye": [
+798,
+34,
+978,
+190
+],
+"bluewingedwarbler": [
+26,
+34,
+206,
+190
+],
+"blackvulture": [
+26,
+34,
+206,
+190
+],
+"americanoystercatcher": [
+34,
+490,
+194,
+630
+],
+"blackbilledmagpie": [
+792,
+38,
+972,
+194
+],
+"bobolink": [
+26,
+34,
+206,
+190
+],
+"brewersblackbird": [
+792,
+38,
+972,
+194
+],
+"californiacondor": [
+26,
+34,
+206,
+190
+],
+"ceruleanwarbler": [
+26,
+34,
+206,
+190
+],
+"chestnutcollaredlongspur": [
+792,
+38,
+972,
+194
+],
+"chihuahuanraven": [
+26,
+20,
+206,
+176
+],
+"commongrackle": [
+780,
+20,
+960,
+176
+],
+"commonmerganser": [
+780,
+20,
+960,
+176
+],
+"commonnighthawk": [
+38,
+22,
+218,
+178
+],
+"commonraven": [
+798,
+22,
+978,
+178
+],
+"doublecrestedcormorant": [
+20,
+30,
+240,
+222
+],
+"downywoodpecker": [
+412,
+778,
+632,
+970
+],
+"easternkingbird": [
+22,
+24,
+242,
+216
+],
+"easternscreechowl": [
+32,
+482,
+212,
+638
+],
+"ferruginoushawk": [
+24,
+36,
+204,
+192
+],
+"goldeneagle": [
+22,
+24,
+242,
+216
+],
+"franklinsgull": [
+24,
+36,
+204,
+192
+],
+"greathornedowl": [
+26,
+26,
+206,
+182
+],
+"greatblueheron": [
+24,
+36,
+204,
+192
+],
+"greenheron": [
+14,
+10,
+234,
+202
+],
+"greaterprairiechicken": [
+14,
+484,
+194,
+640
+],
+"hermitthrush": [
+26,
+22,
+206,
+178
+],
+"kingrail": [
+420,
+16,
+640,
+208
+],
+"lazulibunting": [
+420,
+16,
+640,
+208
+],
+"killdeer": [
+802,
+22,
+982,
+178
+],
+"mississippikite": [
+436,
+16,
+656,
+208
+],
+"mallard": [
+30,
+16,
+210,
+172
+],
+"northernflicker": [
+436,
+16,
+656,
+208
+],
+"northernharrier": [
+436,
+16,
+656,
+208
+],
+"northernshoveler": [
+30,
+16,
+210,
+172
+],
+"osprey": [
+436,
+16,
+656,
+208
+],
+"pileatedwoodpecker": [
+16,
+794,
+236,
+986
+],
+"piedbilledgrebe": [
+796,
+26,
+976,
+182
+],
+"pinesiskin": [
+16,
+12,
+236,
+204
+],
+"prothonotarywarbler": [
+432,
+32,
+652,
+224
+],
+"purplegallinule": [
+26,
+24,
+206,
+180
+],
+"purplemartin": [
+420,
+32,
+640,
+224
+],
+"redshoulderedhawk": [
+420,
+32,
+640,
+224
+],
+"redbelliedwoodpecker": [
+30,
+786,
+250,
+978
+],
+"redcockadedwoodpecker": [
+30,
+786,
+250,
+978
+],
+"redtailedhawk": [
+18,
+12,
+238,
+204
+],
+"redheadedwoodpecker": [
+428,
+788,
+648,
+980
+],
+"ringbilledgull": [
+26,
+24,
+206,
+180
+],
+"rosebreastedgrosbeak": [
+420,
+22,
+640,
+214
+],
+"snowyegret": [
+462,
+26,
+642,
+182
+],
+"sandhillcrane": [
+20,
+18,
+200,
+174
+],
+"ruddyduck": [
+786,
+26,
+966,
+182
+],
+"spottedowl": [
+20,
+16,
+200,
+172
+],
+"treeswallow": [
+462,
+16,
+642,
+172
+],
+"spottedtowhee": [
+22,
+22,
+202,
+178
+],
+"turkeyvulture": [
+462,
+16,
+642,
+172
+],
+"trumpeterswan": [
+32,
+24,
+212,
+180
+],
+"violetgreenswallow": [
+462,
+16,
+642,
+172
+],
+"westernmeadowlark": [
+30,
+32,
+230,
+206
+],
+"westerntanager": [
+30,
+32,
+230,
+206
+],
+"whitebreastednuthatch": [
+32,
+24,
+212,
+180
+],
+"willet": [
+776,
+486,
+956,
+642
+],
+"whoopingcrane": [
+32,
+24,
+212,
+180
+],
+"yellowbelliedsapsucker": [
+34,
+782,
+234,
+956
+],
+"swainsonshawk": [
+450,
+22,
+630,
+178
+],
+"bronzedcowbird": [
+26,
+34,
+206,
+190
+],
+"yellowrumpedwarbler": [
+10,
+20,
+190,
+176
+],
+"bellsvireo": [
+46,
+478,
+226,
+634
+],
+"fishcrow": [
+24,
+36,
+204,
+192
+],
+"yellowbreastedchat": [
+28,
+474,
+208,
+630
+],
+"brownheadedcowbird": [
+792,
+38,
+972,
+194
+]
+}
+}
