@@ -348,16 +348,14 @@
   const norm100 = all => { const tot = all.reduce((s, p) => s + p.pct, 0) || 1; return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) })); };
   // Bird colors: extracted palette, minus admin removals, plus admin-added (published) and your own added colors.
   function pal(b) {
-    if (!b.art) return [];
     const o = curOf(b), e = edits[b.sci] || {}, rm = new Set(o.removed || []);
-    return norm100([...b.art.palette.filter(p => !rm.has(p.hex)), ...(o.added || []).map(hex => ({ hex, pct: 6, admin: true })),
+    return norm100([...(b.art?.palette || []).filter(p => !rm.has(p.hex)), ...(o.added || []).map(hex => ({ hex, pct: 6, admin: true })),
       ...(e.added || []).map(hex => ({ hex, pct: 6, added: true }))]);
   }
   // Background colors (perch, plants, water...), used by the Artist's Palette. Only the admin edits these.
   function bgPal(b) {
-    if (!b.art) return [];
     const o = curOf(b), rm = new Set(o.bgRemoved || []);
-    return norm100([...(b.art.bgPalette || []).filter(p => !rm.has(p.hex)), ...(o.bgAdded || []).map(hex => ({ hex, pct: 6, admin: true }))]);
+    return norm100([...(b.art?.bgPalette || []).filter(p => !rm.has(p.hex)), ...(o.bgAdded || []).map(hex => ({ hex, pct: 6, admin: true }))]);
   }
 
   // ---------- Artist's Palette: a food's color appears on the bird or in its background ----------
@@ -368,7 +366,7 @@
     return Object.keys(b.food).filter(f => FOOD_COLORS[f]).map(f => ({
       food: f, want: FOOD_COLORS[f], bird: p.find(c => FOOD_COLORS[f].includes(c.name)), bg: g.find(c => FOOD_COLORS[f].includes(c.name)) }));
   }
-  const autoArtist = b => !!b.art && artistMatches(b).some(m => m.bird || m.bg);
+  const autoArtist = b => artistMatches(b).some(m => m.bird || m.bg);
   const isArtist = b => curOf(b).flag ?? autoArtist(b);  // admin can force the flag on or off
   // 1 = same color, 0 = ΔE ≥ range. Only colors with the same name compare (Blue vs Blue, never Blue vs Black).
   const closeness = (a, b, range) => a.name === b.name ? Math.max(0, 1 - dE(a.lab, b.lab) / range) : 0;
@@ -408,7 +406,7 @@
 
   // ---------- card (shared by grid and detail) ----------
   function cardHTML(b, i, big = false) {
-    const art = !b.art ? '<div class="noart">no card art</div>'
+    const art = !b.art ? (big ? '<div class="noart">no card art</div>' : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="noart">no card art</div></button>`)
       : !authed ? `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="locked">🔒<br>log in to see the art</div></button>`
       : big ? `<div class="stage" id="stage"><div class="pan" id="bigpan" style="${panStyle(b)}"><canvas id="cv" aria-label="Click the bird to add a color"></canvas><canvas id="heatBig" hidden></canvas></div></div>`
       : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt="${esc(b.name)}"><canvas hidden></canvas></div></button>`;
@@ -426,8 +424,8 @@
       </div>
       <div class="power ${b.color || 'none'}">${b.color ? `<b>${POWER[b.color] || ''}</b>` : ''}${b.power ? powerText(b.power) : 'No power'}</div>
       ${big ? `<div class="flavor">${esc(b.flavor)}</div>` : ''}
-      ${!big && b.art ? swatches(pal(b)) : ''}
-      ${!big && b.art && MODE === 'palette' ? swatches(bgPal(b)).replace('class="pal"', 'class="pal bgpal" title="Background colors"') + foodMatchHTML(b) : ''}
+      ${!big && (b.art || pal(b).length) ? swatches(pal(b)) : ''}
+      ${!big && (b.art || pal(b).length || bgPal(b).length) && MODE === 'palette' ? swatches(bgPal(b)).replace('class="pal"', 'class="pal bgpal" title="Background colors"') + foodMatchHTML(b) : ''}
       ${b.art ? `<div class="credit">Art: <a href="${esc(b.art.site)}" target="_blank" rel="noopener">${esc(b.art.artist)}</a></div>` : ''}
     </article>`;
   }
@@ -477,7 +475,7 @@
   function render() {
     const term = q.value.trim().toLowerCase();
     const list = BIRDS.map((b, i) => [b, i]).filter(([b]) => (!term || (b.name + ' ' + b.sci).toLowerCase().includes(term)) && passes(b));
-    shownList = list.map(([b]) => b).filter(b => b.art);  // what the arrows step through in the card view
+    shownList = list.map(([b]) => b);  // what the arrows step through in the card view
     $('shown').textContent = list.length;
     $('countnote').textContent = MODE === 'palette' ? `birds shown · 🖌️ ${list.filter(([b]) => isArtist(b)).length}` : 'birds shown';
     grid.innerHTML = list.map(([b, i]) => cardHTML(b, i)).join('');
@@ -486,10 +484,10 @@
   grid.addEventListener('mouseover', e => {
     const hex = e.target.dataset.hex; if (!hex || !authed) return;
     const card = e.target.closest('.card');
-    const src = card.querySelector('.frame img').getAttribute('src');
+    const src = card.querySelector('.frame img')?.getAttribute('src');
     if (src) drawHeat(card.querySelector('.frame canvas'), src, hex, 300);
   });
-  grid.addEventListener('mouseout', e => { if (e.target.dataset.hex && authed) clearHeat(e.target.closest('.card').querySelector('.frame canvas')); });
+  grid.addEventListener('mouseout', e => { const c = e.target.dataset.hex && authed && e.target.closest('.card').querySelector('.frame canvas'); if (c) clearHeat(c); });
   grid.addEventListener('click', e => {
     const hex = e.target.dataset.hex; if (hex) return copy(hex);
     const f = e.target.closest('.frame'); if (f) openBird(BIRDS[f.dataset.i]);
@@ -507,8 +505,8 @@
     const at = shownList.indexOf(b);
     $('navpos').textContent = at >= 0 ? `${at + 1} of ${shownList.length}` + (filterSummary() || q.value.trim() ? ' matching your search/filters' : '') : 'not in the current results';
     renderSide();
-    $('adminpanel').hidden = !(isAdmin && b.art);
-    $('posadmin').hidden = !authed;
+    $('adminpanel').hidden = !isAdmin;
+    $('posadmin').hidden = !authed || !b.art;
     $('colorin').value = ''; $('colorin').oninput();
     $('artistadmin').hidden = $('addtarget').hidden = MODE !== 'palette';
     $('flagsel').value = curOf(b).flag === undefined ? '' : curOf(b).flag ? '1' : '0';
@@ -516,8 +514,9 @@
     syncZoom();
     if (!dlg.open) dlg.showModal();
     $('dwrap').scrollTop = 0;
-    $('hover').textContent = authed ? 'Click the bird to add a color' : 'Log in to see the art and add colors';
-    if (!authed) return;
+    $('hover').textContent = !b.art ? (isAdmin ? 'No card art: type colors in "Add a color" below.' : 'No card art for this bird.')
+      : authed ? 'Click the bird to add a color' : 'Log in to see the art and add colors';
+    if (!authed || !b.art) return;
     cv = $('cv'); ctx = cv.getContext('2d', { willReadFrequently: true });
     const img = new Image();
     img.onload = () => { cv.width = img.naturalWidth; cv.height = img.naturalHeight; ctx.drawImage(img, 0, 0); };
@@ -560,8 +559,8 @@
 
   // Similar birds, one section per comparison so it's clear which color matched.
   function renderSims() {
-    const mine = pal(cur), others = BIRDS.filter(b => b !== cur && b.art && passes(b)).map(b => ({ b, p: pal(b) }));
-    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${authed ? `<div class="tframe"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt=""></div></div>` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
+    const mine = pal(cur), others = BIRDS.filter(b => b !== cur && passes(b)).map(b => ({ b, p: pal(b) })).filter(o => o.p.length || bgPal(o.b).length);
+    const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${!b.art ? '<div class="locked">no card art</div>' : authed ? `<div class="tframe"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt=""></div></div>` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
     const pairChip = (a, c) => `<span class="pair" title="${a.name} ${a.hex} ↔ ${c.name} ${c.hex}"><i style="background:${a.hex}"></i><i style="background:${c.hex}"></i>${c.name}</span>`;
     // Overall: shared coverage summed over every color pair; each tile lists the pairs that matched most.
     const overall = others.map(({ b, p }) => {
@@ -596,8 +595,8 @@
     hydrate($('sims'));
   }
 
-  $('pbox').addEventListener('mouseover', e => { const r = e.target.closest('.row'); if (r && authed) artURL(keyOf(cur)).then(u => drawHeat($('heatBig'), u, r.dataset.hex, 700)); });
-  $('pbox').addEventListener('mouseleave', () => authed && clearHeat($('heatBig')));
+  $('pbox').addEventListener('mouseover', e => { const r = e.target.closest('.row'); if (r && authed && cur.art) artURL(keyOf(cur)).then(u => drawHeat($('heatBig'), u, r.dataset.hex, 700)); });
+  $('pbox').addEventListener('mouseleave', () => authed && cur.art && clearHeat($('heatBig')));
   const without = (list, hex) => (list || []).filter(h => h !== hex);
   $('pbox').addEventListener('click', e => {
     if (e.target.dataset.copy) return copy(e.target.dataset.copy);
@@ -610,7 +609,7 @@
         if ((d[add] || []).includes(del)) d[add] = without(d[add], del); else d[rem] = [...new Set([...(d[rem] || []), del])];
         saveDraft();
       }
-      if (authed) clearHeat($('heatBig')); return renderSide();
+      if (authed && cur.art) clearHeat($('heatBig')); return renderSide();
     }
     const hex = e.target.dataset.restore;
     if (hex && isAdmin) { const d = draftOf(cur), rem = e.target.dataset.kind === 'bg' ? 'bgRemoved' : 'removed'; d[rem] = without(d[rem], hex); saveDraft(); return renderSide(); }
@@ -667,7 +666,7 @@
 
   function exportPalettes() {
     const col = c => ({ hex: c.hex, name: c.name, pct: Math.round(c.pct) });
-    const out = BIRDS.filter(b => b.art).map(b => ({ name: b.name, sci: b.sci, colors: pal(b).map(col), background: bgPal(b).map(col), artistsPalette: isArtist(b),
+    const out = BIRDS.filter(b => b.art || pal(b).length || bgPal(b).length).map(b => ({ name: b.name, sci: b.sci, colors: pal(b).map(col), background: bgPal(b).map(col), artistsPalette: isArtist(b),
       foodMatches: artistMatches(b).map(m => ({ food: FOOD_LABEL[m.food], needs: m.want, bird: m.bird?.hex || null, background: m.bg?.hex || null })) }));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
