@@ -23,7 +23,9 @@ Click **Admin** under the search box and log in with the admin password. In a bi
 - force the 🖌️ Artist's Palette flag on or off (or leave it automatic), and
 - zoom and drag the picture (**Picture position**) so the whole bird shows.
 
-Your changes are saved in your browser as a draft. To publish them for everyone, click **Download overrides.json**, then upload that file to the root of this repo (on GitHub: **Add file → Upload files**, replacing the existing `overrides.json`). Visitors who aren't admin can't remove colors. They can still add colors in their own browser by clicking the bird.
+**Publishing for everyone:** click **Connect GitHub to publish automatically** in the admin bar once and paste a GitHub fine-grained personal access token for this repo with **Contents: Read and write** (GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens). After that, every admin change is saved to `overrides.json` in the repo a few seconds after you stop editing, and the live site shows it to everyone within about a minute. The token is kept only in your browser (IndexedDB); **Disconnect GitHub** removes it. Without a token, **Download overrides.json** and upload it to the repo as before.
+
+Only the admin can add or remove colors; regular visitors see the published palettes. The admin login lasts until the browser is closed.
 
 ## Passwords
 
