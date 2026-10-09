@@ -559,13 +559,19 @@
     "#524f5d",
     "#d6d7dc",
     "#95959e",
-    "#4d7bb8"
+    "#4d7bb8",
+    "#524e5d",
+    "#97979f",
+    "#cdced3"
    ],
    "added": [
     "#f8f8fa"
    ],
    "bgRemoved": [
     "#667448"
+   ],
+   "bgAdded": [
+    "#cbc9cf"
    ]
   },
   "Archilochus alexandri": {
