@@ -79,8 +79,11 @@
   .stats b { font: 700 26px/1 var(--hand); color: #5b5340; }
   .stats .vp .gi { height: 30px; }
   .stats .nest .gi { height: 30px; }
-  .beak { min-width: 26px; height: 20px; padding: 0 4px; border-radius: 10px; background: #8b8270; color: #efe6cf; font-size: 11px; line-height: 20px; text-align: center; letter-spacing: -1px; }
-  .big .beak { min-width: 36px; height: 28px; line-height: 28px; font-size: 15px; border-radius: 14px; }
+  .beak { display: flex; gap: 1px; }
+  .beakico { width: 30px; height: 22px; display: block; }
+  .chip .beakico { width: 22px; height: 16px; }
+  .beak:has(.beakico + .beakico) .beakico { width: 20px; height: 15px; }  /* both ways (Common Loon) */
+  .big .beakico { width: 42px; height: 30px; }
   .cmid .eggs { position: absolute; left: 10px; bottom: 2px; display: flex; gap: 3px; color: #9c907c; font-size: 11px; letter-spacing: -2px; }
   .cmid .eggs .gi { height: 13px; }
   .frame { position: relative; flex: 1; border: 0; padding: 0; background: none; cursor: zoom-in; min-width: 0; }
@@ -319,9 +322,17 @@
   const FOOD = { Invertebrate: '🐛', Seed: '🌱', Fish: '🐟', Fruit: '🍒', Rodent: '🐭', Nectar: '🌸', Wild: '✳️' };
   const NEST = { bowl: '◡', cavity: '◉', ground: '▬', platform: '☰', wild: '★', none: '–' };
   // Beak direction from the card data: L, R, N (neither, facing forward = Center) or LR (both ways, e.g. the Common Loon)
-  const BEAK = { Left: '◀', Right: '▶', Center: '▲' };
+  // Beak icons (drawn here, in the nest badges' color): a head in profile with the beak pointing left or right,
+  // or a head facing you with the beak pointing down for Center.
+  const BEAK_SVG = {
+    Right: '<circle cx="11" cy="11" r="7"/><path d="M16.5 8.6 L28 11 L16.5 13.4 Z"/><circle cx="12.6" cy="9" r="1.3" fill="#efe6cf"/>',
+    Left: '<g transform="matrix(-1 0 0 1 30 0)"><circle cx="11" cy="11" r="7"/><path d="M16.5 8.6 L28 11 L16.5 13.4 Z"/><circle cx="12.6" cy="9" r="1.3" fill="#efe6cf"/></g>',
+    Center: '<circle cx="15" cy="10" r="7.5"/><path d="M12.4 13 L17.6 13 L15 21 Z"/><circle cx="12.3" cy="8.6" r="1.2" fill="#efe6cf"/><circle cx="17.7" cy="8.6" r="1.2" fill="#efe6cf"/>',
+  };
+  const beakIcon = d => `<svg class="beakico" viewBox="0 0 30 22" fill="#8b8270" role="img" aria-label="Beak ${d.toLowerCase()}"><title>Beak ${d.toLowerCase()}</title>${BEAK_SVG[d]}</svg>`;
+  const BEAK = Object.fromEntries(['Left', 'Right', 'Center'].map(d => [d, beakIcon(d)]));
   const beakDirs = b => ({ L: ['Left'], R: ['Right'], N: ['Center'], LR: ['Left', 'Right'] })[b.beak] || [];
-  const beakBadge = b => beakDirs(b).length ? `<div class="beak" title="Beak: ${beakDirs(b).join(' and ').toLowerCase()}">${beakDirs(b).map(d => BEAK[d]).join('')}</div>` : '';
+  const beakBadge = b => beakDirs(b).length ? `<div class="beak" title="Beak: ${beakDirs(b).join(' and ').toLowerCase()}">${beakDirs(b).map(d => BEAK[d]).join('')}</div>` : '';  // the Loon shows both
   const POWER = { brown: 'When activated:', white: 'When played:', pink: 'Once between turns:' };
   const ICON = { card: '🃏', egg: '🥚', die: '🎲', predator: '🦅', forest: '🌲', grassland: '🌾', wetland: '💧', ...Object.fromEntries(Object.entries(FOOD).map(([k, v]) => [k.toLowerCase(), v])), ...NEST };
   // The game's own habitat/food icons (cropped from the digital edition, published encrypted like the art): shown once
@@ -578,7 +589,7 @@
     <div class="fgroup"><span>Habitat</span>${Object.keys(HAB).map(h => chip('hab', h, `${habIcon(h)} ${h}`)).join('')}</div>
     <div class="fgroup"><span>Colors</span>${FILTER_COLORS.map(n => chip('color', n, `<i style="background:${NAME_HEX[n]}"></i>${n}`)).join('')}</div>
     <div class="fgroup"><span>Food</span>${FOOD_ORDER.filter(f => BIRDS.some(b => b.food[f])).map(f => chip('food', f, `${foodIcon(f)} ${FOOD_LABEL[f]}`)).join('')}</div>
-    <div class="fgroup"><span>Beak</span>${Object.entries(BEAK).map(([d, g]) => chip('beak', d, `${g} ${d}`)).join('')}</div>
+    <div class="fgroup"><span>Beak</span>${Object.entries(BEAK).map(([d, g]) => chip('beak', d, `${g.replace(/<title>.*?<\/title>/, '').replace('role="img"', 'aria-hidden="true"')} ${d}`)).join('')}</div>
     <div class="fgroup"><span>Powers</span>${['brown', 'pink', 'white'].map(c => chip('power', c, c[0].toUpperCase() + c.slice(1)).replace('class="chip"', `class="chip p-${c}"`)).join('')}</div>
     ${MODE === 'palette' ? `<div class="fgroup"><span>Artist's</span>${chip('artist', 'yes', "🖌️ Artist's Palette")}${chip('artist', 'no', 'No match')}</div>` : ''}
     <div class="factions"><span class="hint">Colors: the bird itself (not its background) has every chosen color, covering ≥5% of the bird. Other groups: any.</span>
