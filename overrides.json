@@ -557,6 +557,9 @@
     "#242329",
     "#d8d9dd",
     "#d3cdcd"
+   ],
+   "bgRemoved": [
+    "#d1bbbb"
    ]
   },
   "Pica hudsonia": {
