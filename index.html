@@ -274,8 +274,8 @@
   const foodsInGameOrder = b => Object.entries(b.food).sort(([x], [y]) => FOOD_ORDER.indexOf(x) - FOOD_ORDER.indexOf(y));
   const foodIcon = f => gameIcon(f.toLowerCase(), FOOD[f], { Seed: 'Wheat', Fruit: 'Cherry', Rodent: 'Rat', Invertebrate: 'Worm', Fish: 'Fish', Wild: 'Omnivore', Nectar: 'Nectar' }[f]);
   const powerText = t => esc(t).replace(/\[(\w+)\]/g, (m, k) => GAME_ICONS.has(k) ? gameIcon(k, ICON[k], k) : ICON[k] ? `<span title="${k}">${ICON[k]}</span>` : m);
-  const NAMES = ['Black', 'White', 'Gray', 'Beige', 'Brown', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink'];
-  const NAME_HEX = { Black: '#222', White: '#fff', Gray: '#999', Beige: '#e6d6bd', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e', Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
+  const NAMES = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Brown', 'White', 'Black', 'Gray'];
+  const NAME_HEX = { Black: '#222', White: '#fff', Gray: '#999', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e', Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
 
   // ---------- color math ----------
   const rgbOf = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
@@ -294,10 +294,11 @@
     const [r, g, b] = rgbOf(hex).map(v => v / 255), max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
     const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
     if (l < 0.1) return 'Black';
+    if (l > 0.9) return 'White';  // near-white with only a hint of color (cream, ivory)
     if (s < 0.15 || d < 0.08) return l < 0.2 ? 'Black' : l > 0.82 ? 'White' : 'Gray';
     let h = d === 0 ? 0 : max === r ? 60 * (((g - b) / d) % 6) : max === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
     if (h < 0) h += 360;
-    if ((h < 70 || h >= 330) && l > 0.6 && s < 0.45) return 'Beige';  // pale buff / cream
+    if ((h < 70 || h >= 330) && l > 0.6 && s < 0.45) return l > 0.8 ? 'White' : 'Brown';  // pale buff / cream: very light = White, else light Brown
     if (h < 10 || h >= 345) return l > 0.7 ? 'Pink' : l < 0.3 && s < 0.5 ? 'Brown' : 'Red';
     if (h < 45) return l < 0.45 || s < 0.4 ? 'Brown' : 'Orange';
     if (h < 70) return l < 0.3 ? 'Brown' : 'Yellow';
@@ -308,13 +309,13 @@
   }
   [['#ff0000','Red'],['#2ab3e5','Blue'],['#ffd700','Yellow'],['#8b4513','Brown'],['#ffc0cb','Pink'],['#808080','Gray'],['#ffffff','White'],
    ['#000000','Black'],['#228b22','Green'],['#800080','Purple'],['#ffa500','Orange'],['#e89ab0','Pink'],['#26252a','Black'],
-   ['#d4bdb6','Beige'],['#ec967c','Orange'],['#f3ced3','Pink'],['#cd434f','Red'],
-   ...Object.entries({ Black: '#1a1a1a', White: '#f5f5f5', Gray: '#999999', Beige: '#ddd0bb', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e',
+   ['#d4bdb6','Brown'],['#e8dfd0','White'],['#f5f5dc','White'],['#c9bd9c','Brown'],['#ec967c','Orange'],['#f3ced3','Pink'],['#cd434f','Red'],
+   ...Object.entries({ Black: '#1a1a1a', White: '#f5f5f5', Gray: '#999999', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e',
      Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' }).map(([n, h]) => [h, n])]
     .forEach(([hex, want]) => console.assert(colorName(hex) === want, `colorName(${hex}) = ${colorName(hex)}, want ${want}`));
 
   // Typed colors (admin): one of our names -> a standard shade of it; otherwise any hex code or CSS color name.
-  const CANON = { Black: '#1a1a1a', White: '#f5f5f5', Gray: '#999999', Beige: '#ddd0bb', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e',
+  const CANON = { Black: '#1a1a1a', White: '#f5f5f5', Gray: '#999999', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e',
     Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
   function parseColor(text) {
     const t = text.trim(); if (!t) return null;
