@@ -247,6 +247,7 @@
     <div class="adminbar" id="adminbar" hidden><b>Admin</b><span id="pending"></span>
       <label><input type="checkbox" id="showdigital"> Show the digital game art to visitors</label>
       <button class="btn" id="ghconnect" type="button">Connect GitHub to publish automatically</button>
+      <button class="btn" id="publishnow" type="button" hidden>Publish now</button>
       <a href="#" id="ghdisconnect" hidden>Disconnect GitHub</a>
       <button class="btn light" id="dlover">Download overrides.json</button><a href="#" id="adminout">Log out admin</a></div>
     <div class="filters" id="filters"></div>
@@ -917,7 +918,8 @@
     const body = JSON.stringify(draft, null, 1) + '\n';
     publishState = 'Publishing…'; showPending();
     try {
-      const curRes = await ghFetch(`${OVERRIDES_API}?ref=main`);
+      // no-store: GitHub's API is cached for 60 s, and a stale version id makes the save fail with 409
+      const curRes = await ghFetch(`${OVERRIDES_API}?ref=main`, { cache: 'no-store' });
       const sha = curRes.ok ? (await curRes.json()).sha : undefined;
       const res = await ghFetch(OVERRIDES_API, { method: 'PUT', body: JSON.stringify({ message: 'Admin: update overrides', content: b64utf8(body), sha, branch: 'main' }) });
       if (res.status === 409 && retry) return publish(false);  // someone else saved in between: refetch and retry once
@@ -933,6 +935,7 @@
     if (!isAdmin) return;
     const changed = JSON.stringify(draft) !== JSON.stringify(published);
     $('ghconnect').hidden = !!ghToken; $('ghdisconnect').hidden = !ghToken;
+    $('publishnow').hidden = !ghToken || !changed || publishState === 'Publishing…';
     $('pending').textContent = publishState && (changed || publishState.startsWith('Published'))
       ? publishState
       : changed ? (ghToken ? 'Unpublished changes.' : 'You have unpublished changes. Connect GitHub to publish them automatically, or download overrides.json and upload it to the repo.')
@@ -949,6 +952,7 @@
     toast('GitHub connected');
     if (JSON.stringify(draft) !== JSON.stringify(published)) publish(); else showPending();
   };
+  $('publishnow').onclick = () => { clearTimeout(publishTimer); publish(); };
   $('ghdisconnect').onclick = async e => {
     e.preventDefault(); ghToken = null; await keyStore('readwrite', st => st.delete('gh')).catch(() => {}); publishState = ''; showPending();
   };
