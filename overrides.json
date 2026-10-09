@@ -501,11 +501,11 @@
     "#0a0808",
     "#fcfcfc"
    ],
-   "bgAdded": [
-    "#181818"
-   ],
+   "bgAdded": [],
    "bgRemoved": [
-    "#bf903b"
+    "#bf903b",
+    "#9d9e8f",
+    "#6b6d66"
    ]
   },
   "Thryomanes bewickii": {
