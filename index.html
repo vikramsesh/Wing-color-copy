@@ -168,7 +168,12 @@
   .modes a:hover { background: rgb(255 255 255 / .85); }
   .modes a[aria-current] { background: var(--ink); color: #fff; border-color: var(--ink); }
   .brush { position: absolute; top: 4px; right: 6px; z-index: 2; width: 34px; height: 34px; display: grid; place-items: center; font-size: 20px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px rgb(0 0 0 / .25); }
-  .big .brush { width: 48px; height: 48px; font-size: 28px; }
+  .brush { width: auto; min-width: 34px; padding: 0 9px 0 6px; border-radius: 17px; gap: 2px; display: flex; align-items: center; }
+  .brush b { font: 700 22px/1 var(--hand); color: var(--brown); }
+  .big .brush { height: 48px; font-size: 28px; border-radius: 24px; } .big .brush b { font-size: 30px; }
+  .fm small { font-size: 10px; }
+  .fmpts { margin-left: auto; font: 700 16px/1 var(--hand); color: var(--brown); }
+  .amrow .pts { color: var(--brown); }
   .pal.bgpal { height: 12px; opacity: .9; }
   .foodmatch { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 5px 8px; font-size: 12px; border-top: 1px dashed var(--line); }
   .fm { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); }
@@ -381,6 +386,10 @@
   }
   const autoArtist = b => artistMatches(b).some(m => m.bird || m.bg);
   const isArtist = b => curOf(b).flag ?? autoArtist(b);  // admin can force the flag on or off
+  // Points: 2 for every food icon whose color is on the bird or in its background (3 worms + green = 6).
+  // A bird the admin set to "never flag" scores 0.
+  const iconPoints = (b, m) => m.bird || m.bg ? 2 * b.food[m.food] : 0;
+  const artistPoints = b => isArtist(b) ? artistMatches(b).reduce((s, m) => s + iconPoints(b, m), 0) : 0;
   // 1 = same color, 0 = ΔE ≥ range. Only colors with the same name compare (Blue vs Blue, never Blue vs Black).
   const closeness = (a, b, range) => a.name === b.name ? Math.max(0, 1 - dE(a.lab, b.lab) / range) : 0;
   const swatches = list => `<div class="pal">${list.map(p => `<button style="background:${p.hex};flex:${p.pct}" data-hex="${p.hex}" data-label="${p.name} ${p.hex}" aria-label="${p.name} ${p.hex}"></button>`).join('')}</div>`;
@@ -433,7 +442,7 @@
       <div class="cmid">
         <div class="stats"><b>${b.points}</b><span title="${esc(b.nest)} nest">${NEST[b.nest] ?? ''}</span><span class="eggs" title="egg limit">${'●'.repeat(b.eggs)}</span></div>
         ${art}
-        ${MODE === 'palette' && isArtist(b) ? `<span class="brush" title="Artist's Palette">🖌️</span>` : ''}
+        ${MODE === 'palette' && isArtist(b) ? `<span class="brush" title="Artist's Palette: ${artistPoints(b)} points">🖌️<b>${artistPoints(b)}</b></span>` : ''}
         <div class="ws">${b.wingspan}cm</div>
       </div>
       <div class="power ${b.color || 'none'}">${b.color ? `<b>${POWER[b.color] || ''}</b>` : ''}${b.power ? powerText(b.power) : 'No power'}</div>
@@ -446,7 +455,8 @@
 
   function foodMatchHTML(b) {
     return `<div class="foodmatch">${artistMatches(b).map(m => { const hit = m.bird || m.bg;
-      return `<span class="fm ${hit ? 'hit' : ''}" title="${FOOD_LABEL[m.food]} needs ${m.want.join(' or ')}${hit ? ': found ' + (m.bird ? 'on the bird' : 'in the background') : ': no match'}">${foodIcon(m.food)}${m.want.map(n => `<i style="background:${NAME_HEX[n]}"></i>`).join('')}${hit ? '✓' : ''}</span>`; }).join('')}</div>`;
+      const n = b.food[m.food];
+      return `<span class="fm ${hit ? 'hit' : ''}" title="${n > 1 ? n + '× ' : ''}${FOOD_LABEL[m.food]} needs ${m.want.join(' or ')}${hit ? ': found ' + (m.bird ? 'on the bird' : 'in the background') + ` (+${iconPoints(b, m)})` : ': no match'}">${foodIcon(m.food)}${n > 1 ? `<small>×${n}</small>` : ''}${m.want.map(n => `<i style="background:${NAME_HEX[n]}"></i>`).join('')}${hit ? '✓' : ''}</span>`; }).join('')}${isArtist(b) ? `<span class="fmpts">${artistPoints(b)} pts</span>` : ''}</div>`;
   }
 
   // ---------- filters ----------
@@ -565,9 +575,11 @@
     if (MODE === 'palette') {
       const ms = artistMatches(cur), flagged = isArtist(cur), forced = o.flag !== undefined;
       const got = c => `<i style="background:${c.hex}"></i> ${c.name} ${c.hex}`;
-      $('artistbox').innerHTML = `<div class="verdict">${flagged ? "🖌️ Artist's Palette" : 'No Artist\'s Palette'}<small>${forced ? 'Set by the admin' : flagged ? 'A food color appears on the bird or in its background' : 'None of its food colors appear on the bird or in its background'}</small></div>
-        ${ms.map(m => `<div class="amrow"><div class="need">${foodIcon(m.food)} ${FOOD_LABEL[m.food]} ${m.want.map(n => `<i title="${n}" style="background:${NAME_HEX[n]}"></i>`).join('')}</div>
-          <div class="got ${m.bird || m.bg ? '' : 'no'}">${m.bird ? 'Bird: ' + got(m.bird) : ''}${m.bird && m.bg ? '<br>' : ''}${m.bg ? 'Background: ' + got(m.bg) : ''}${m.bird || m.bg ? '' : `No ${m.want.join(' or ').toLowerCase()}`}</div></div>`).join('') || '<div class="hint">This bird has no food cost.</div>'}`;
+      $('artistbox').innerHTML = `<div class="verdict">${flagged ? `🖌️ Artist's Palette · ${artistPoints(cur)} point${artistPoints(cur) === 1 ? '' : 's'}` : 'No Artist\'s Palette'}<small>${forced ? 'Set by the admin' : flagged ? 'A food color appears on the bird or in its background' : 'None of its food colors appear on the bird or in its background'}</small></div>
+        ${ms.map(m => { const n = cur.food[m.food], pts = iconPoints(cur, m);
+          return `<div class="amrow"><div class="need">${foodIcon(m.food)}${n > 1 ? ` ×${n}` : ''} ${FOOD_LABEL[m.food]} ${m.want.map(c => `<i title="${c}" style="background:${NAME_HEX[c]}"></i>`).join('')}</div>
+          <div class="got ${pts ? '' : 'no'}">${m.bird ? 'Bird: ' + got(m.bird) : ''}${m.bird && m.bg ? '<br>' : ''}${m.bg ? 'Background: ' + got(m.bg) : ''}${pts ? ` <b class="pts">+${pts}</b>${n > 1 ? ` <small>(${n} × 2)</small>` : ''}` : `No ${m.want.join(' or ').toLowerCase()}`}</div></div>`; }).join('') || '<div class="hint">This bird has no food cost.</div>'}
+        ${ms.length ? `<div class="hint">2 points for each food icon whose color is on the bird or in its background.</div>` : ''}`;
     }
     hydrate($('artistbox'));
     renderSims();
@@ -692,7 +704,7 @@
 
   function exportPalettes() {
     const col = c => ({ hex: c.hex, name: c.name, pct: Math.round(c.pct) });
-    const out = BIRDS.filter(b => b.art || pal(b).length || bgPal(b).length).map(b => ({ no: b.no, name: b.name, sci: b.sci, colors: pal(b).map(col), background: bgPal(b).map(col), artistsPalette: isArtist(b),
+    const out = BIRDS.filter(b => b.art || pal(b).length || bgPal(b).length).map(b => ({ no: b.no, name: b.name, sci: b.sci, colors: pal(b).map(col), background: bgPal(b).map(col), artistsPalette: isArtist(b), artistsPalettePoints: artistPoints(b),
       foodMatches: artistMatches(b).map(m => ({ food: FOOD_LABEL[m.food], needs: m.want, bird: m.bird?.hex || null, background: m.bg?.hex || null })) }));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
