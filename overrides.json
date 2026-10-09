@@ -415,6 +415,10 @@
    ],
    "bgAdded": [
     "#aec554"
+   ],
+   "bgRemoved": [
+    "#cedc62",
+    "#879629"
    ]
   },
   "Tyto alba": {
