@@ -59,8 +59,15 @@
   main { display: grid; grid-template-columns: repeat(auto-fill, minmax(214px, 1fr)); gap: 18px; padding: 24px 16px 48px; max-width: 1480px; margin: auto; }
   .card { background: var(--paper); border-radius: 8px; box-shadow: 0 2px 10px rgb(0 40 50 / .18); overflow: hidden; display: flex; flex-direction: column; font-size: 12px; }
   .ctop { display: flex; gap: 6px; padding: 8px 8px 0; align-items: stretch; }
-  .hab { width: 46px; flex: none; background: #c7c2b6; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 3px 0; font-size: 15px; line-height: 1.1; }
-  .hab .food { font-size: 11px; letter-spacing: -1px; }
+  /* habitat + food block, laid out like the game: habitat diamonds on top, food cost below joined by + or / */
+  .hab { min-width: 46px; flex: none; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 2px 2px; font-size: 15px; line-height: 1.1; }
+  .hab .habs, .hab .food { display: flex; align-items: center; gap: 1px; }
+  .hab .habs .gi { height: 22px; }
+  .hab .food .gi { height: 16px; }
+  .hab .food { font-size: 11px; }
+  .sep { color: #8b8270; font-weight: 700; font-size: 12px; margin: 0 1px; }
+  .gi { height: 1.2em; width: auto; vertical-align: -0.25em; }
+  .chip .gi { height: 16px; }
   .banner { flex: 1; border: 1px solid #b9b2a3; border-radius: 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 3px 4px; background: #fff; min-width: 0; }
   .cname { font: 700 21px/1 var(--hand); letter-spacing: .02em; }
   .csci { font-style: italic; font-size: 11px; color: var(--muted); }
@@ -89,11 +96,15 @@
   dialog { border: 0; padding: 0; background: transparent; max-width: min(1200px, 96vw); width: 100%; max-height: 94vh; overflow: visible; }
   dialog::backdrop { background: rgb(40 70 75 / .55); }
   .dwrap { max-height: 94vh; overflow-y: auto; padding: 4px; }
+  .navbtn { position: fixed; top: 50%; transform: translateY(-50%); z-index: 3; width: 52px; height: 52px; border-radius: 50%; border: 0; background: rgb(255 255 255 / .9); color: var(--ink); font-size: 34px; line-height: 1; cursor: pointer; box-shadow: 0 2px 10px rgb(0 0 0 / .3); }
+  .navbtn:hover { background: #fff; }
+  .navbtn.prev { left: 12px; } .navbtn.next { right: 12px; }
+  .navpos { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 3; color: #fff; font-size: 13px; text-shadow: 0 1px 3px rgb(0 0 0 / .6); }
   .close { position: fixed; top: 14px; right: 18px; border: 0; background: none; color: #fff; font-size: 34px; cursor: pointer; line-height: 1; z-index: 3; }
   .dtop { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
   @media (max-width: 820px) { .dtop { grid-template-columns: 1fr; } }
   .big { font-size: 14px; }
-  .big .cname { font-size: 34px; } .big .csci { font-size: 14px; } .big .hab { width: 64px; font-size: 22px; } .big .hab .food { font-size: 15px; }
+  .big .cname { font-size: 34px; } .big .csci { font-size: 14px; } .big .hab { font-size: 22px; } .big .hab .habs .gi { height: 32px; } .big .hab .food .gi { height: 24px; } .big .hab .food { font-size: 15px; } .big .sep { font-size: 16px; }
   .big .stats { width: 64px; font-size: 16px; } .big .stats b { font-size: 34px; }
   .stage { position: relative; flex: 1; min-width: 0; overflow: hidden; }
   .stage.moving, .stage.moving canvas { cursor: move !important; }
@@ -140,6 +151,27 @@
   .pair { display: inline-flex; align-items: center; gap: 2px; }
   .pair i { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgb(0 0 0 / .15); display: inline-block; }
   .empty { color: var(--muted); font-size: 13px; }
+  /* mode switch + Artist's Palette */
+  .modes { position: relative; display: flex; justify-content: center; gap: 6px; margin: -16px auto 14px; }
+  .modes a { padding: 6px 18px; border-radius: 20px; background: rgb(255 255 255 / .55); color: var(--ink); text-decoration: none; font: 700 24px var(--hand); letter-spacing: .03em; border: 1px solid rgb(255 255 255 / .8); }
+  .modes a:hover { background: rgb(255 255 255 / .85); }
+  .modes a[aria-current] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .brush { position: absolute; top: 4px; right: 6px; z-index: 2; width: 34px; height: 34px; display: grid; place-items: center; font-size: 20px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px rgb(0 0 0 / .25); }
+  .big .brush { width: 48px; height: 48px; font-size: 28px; }
+  .pal.bgpal { height: 12px; opacity: .9; }
+  .foodmatch { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 5px 8px; font-size: 12px; border-top: 1px dashed var(--line); }
+  .fm { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); }
+  .fm.hit { color: var(--ink); font-weight: 600; }
+  .fm i { width: 11px; height: 11px; border-radius: 2px; border: 1px solid rgb(0 0 0 / .2); display: inline-block; }
+  .artistbox { background: #fff; border: 2px solid var(--brown); border-radius: 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+  .artistbox .verdict { font: 700 26px/1.1 var(--hand); }
+  .artistbox .verdict small { font: 12px var(--cond); color: var(--muted); display: block; }
+  .amrow { display: grid; grid-template-columns: 96px 1fr; gap: 6px; align-items: center; }
+  .amrow .need { display: flex; gap: 3px; align-items: center; font-size: 12px; color: var(--muted); }
+  .amrow .need i, .amrow .got i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgb(0 0 0 / .2); display: inline-block; vertical-align: -2px; }
+  .amrow .got { font-size: 12px; }
+  .amrow .got.no { color: var(--muted); }
+  .sub { margin: 8px 0 2px; font: 700 20px var(--hand); }
   #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
 </style>
 </head>
@@ -147,14 +179,15 @@
 <header class="hero">
   <img id="heroimg" alt="" hidden>
   <h1>Wingspan Palettes</h1>
+  <nav class="modes" aria-label="Mode"><a data-mode="copy">🎨 Color Copy</a><a data-mode="palette">🖌️ Artist's Palette</a></nav>
   <div class="search" id="search">
     <nav class="sets" aria-label="Image set"><a href="./" data-set="art">Artist originals</a><a href="?set=digital" data-set="digital">Digital game</a></nav>
     <div class="searchrow">
       <input id="q" type="search" placeholder="Search birds" aria-label="Search birds by name">
-      <div class="count"><span id="shown">180</span><small>birds shown</small></div>
+      <div class="count"><span id="shown">180</span><small id="countnote">birds shown</small></div>
       <button class="toggle" id="toggle" aria-expanded="false" aria-label="Show filters">⌄</button>
     </div>
-    <div class="hint">Hover a color to see where it is on the bird · click a card to edit its palette and find birds with similar colors</div>
+    <div class="hint" id="modehint">Hover a color to see where it is on the bird · click a card to edit its palette and find birds with similar colors</div>
     <form class="login" id="login" hidden><span>🔒 The card art is private.</span>
       <input id="pw" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password"><button class="btn">Log in</button><span id="pwerr" class="err"></span></form>
     <div class="hint" id="loggedin" hidden>Logged in · <a href="#" id="logout">Log out</a></div>
@@ -170,16 +203,25 @@
 
 <dialog id="dlg">
   <button class="close" id="close" aria-label="Close">×</button>
+  <button class="navbtn prev" id="prev" aria-label="Previous bird" title="Previous bird (←)">‹</button>
+  <button class="navbtn next" id="next" aria-label="Next bird" title="Next bird (→)">›</button>
+  <div class="navpos" id="navpos"></div>
   <div class="dwrap" id="dwrap">
     <div class="dtop">
       <div id="bigcard"></div>
       <div class="side">
-        <div class="ptitle">Bird Colors</div>
-        <div class="pbox">
+        <div class="artistbox" id="artistbox" hidden></div>
+        <div class="ptitle" id="ptitle">Bird Colors</div>
+        <div class="pbox" id="pbox">
           <div id="rows"></div>
+          <div id="bgwrap" hidden><div class="sub">Background colors <small class="hint">(perch, plants, water…)</small></div><div id="bgrows"></div></div>
           <div class="loupe"><span id="loupe"></span><span id="hover">Click the bird to add a color</span></div>
           <div class="removed" id="removed"></div>
           <div class="admin" id="adminpanel" hidden>
+            <div id="artistadmin"><h4>Artist's Palette flag</h4>
+              <div class="ctl"><select id="flagsel" aria-label="Artist's Palette flag"><option value="">Automatic (from the food colors)</option><option value="1">Always flag 🖌️</option><option value="0">Never flag</option></select></div></div>
+            <div class="ctl" id="addtarget">Clicking the picture adds to:
+              <button class="btn light" data-target="bird" aria-pressed="true">Bird</button><button class="btn light" data-target="bg" aria-pressed="false">Background</button></div>
             <h4>Picture position</h4>
             <div class="ctl"><button class="btn light" id="move" aria-pressed="false">Move picture</button><button class="btn light" id="viewreset">Reset</button></div>
             <div class="ctl"><label for="zoom">Zoom</label><input type="range" id="zoom" min="0.5" max="3" step="0.05" value="1"><span id="zoomv">1.00×</span></div>
@@ -199,7 +241,14 @@
   // Two image sets, same features: the artists' originals (default) or the digital edition's cards (?set=digital).
   const SET = new URLSearchParams(location.search).get('set') === 'digital' ? 'digital' : 'art';
   if (SET === 'digital') BIRDS.forEach(b => b.art = b.digital && { ...b.digital, artist: 'Wingspan digital edition (Steam guide by ungeni)', site: 'https://steamcommunity.com/sharedfiles/filedetails/?id=2690214466' });
-  document.querySelectorAll('.sets a').forEach(a => a.toggleAttribute('aria-current', a.dataset.set === SET));
+  // Two modes: Color Copy (default) and Artist's Palette (?mode=palette). Links keep the other choice.
+  const MODE = new URLSearchParams(location.search).get('mode') === 'palette' ? 'palette' : 'copy';
+  const linkTo = (set, mode) => { const u = new URLSearchParams(); if (set !== 'art') u.set('set', set); if (mode !== 'copy') u.set('mode', mode); const str = u.toString(); return str ? '?' + str : './'; };
+  document.querySelectorAll('.sets a').forEach(a => { a.href = linkTo(a.dataset.set, MODE); a.toggleAttribute('aria-current', a.dataset.set === SET); });
+  document.querySelectorAll('.modes a').forEach(a => { a.href = linkTo(SET, a.dataset.mode); a.toggleAttribute('aria-current', a.dataset.mode === MODE); });
+  if (MODE === 'palette') document.getElementById('modehint').textContent = "🖌️ marks birds whose food colors appear on the bird or in its background · click a card to see which food matched";
+  // Dictionary order: ignore hyphens/apostrophes and case ("Black-bellied Whistling-Duck" before "Black Skimmer").
+  BIRDS.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', ignorePunctuation: true }));
   const grid = $('grid'), q = $('q'), dlg = $('dlg');
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const HAB = { Forest: '🌲', Grassland: '🌾', Wetland: '💧' };
@@ -207,7 +256,16 @@
   const NEST = { bowl: '◡', cavity: '◉', ground: '▬', platform: '☰', wild: '★', none: '–' };
   const POWER = { brown: 'When activated:', white: 'When played:', pink: 'Once between turns:' };
   const ICON = { card: '🃏', egg: '🥚', die: '🎲', predator: '🦅', forest: '🌲', grassland: '🌾', wetland: '💧', ...Object.fromEntries(Object.entries(FOOD).map(([k, v]) => [k.toLowerCase(), v])), ...NEST };
-  const powerText = t => esc(t).replace(/\[(\w+)\]/g, (m, k) => ICON[k] ? `<span title="${k}">${ICON[k]}</span>` : m);
+  // The game's own habitat/food icons (cropped from the digital edition, published encrypted like the art): shown once
+  // logged in; emoji before that.
+  const GAME_ICONS = new Set(['forest', 'grassland', 'wetland', 'seed', 'invertebrate', 'fish', 'fruit', 'rodent', 'wild']);
+  const gameIcon = (key, emoji, label) => authed && GAME_ICONS.has(key) ? `<img class="gi" data-icon="${key}" alt="${label}" title="${label}">` : `<span title="${label}">${emoji}</span>`;
+  const habIcon = h => gameIcon(h.toLowerCase(), HAB[h], h);
+  // The cards list food as: omnivore (wild) first, then fish, cherry, worm, (nectar,) rat, wheat.
+  const FOOD_ORDER = ['Wild', 'Fish', 'Fruit', 'Invertebrate', 'Nectar', 'Rodent', 'Seed'];
+  const foodsInGameOrder = b => Object.entries(b.food).sort(([x], [y]) => FOOD_ORDER.indexOf(x) - FOOD_ORDER.indexOf(y));
+  const foodIcon = f => gameIcon(f.toLowerCase(), FOOD[f], { Seed: 'Wheat', Fruit: 'Cherry', Rodent: 'Rat', Invertebrate: 'Worm', Fish: 'Fish', Wild: 'Omnivore', Nectar: 'Nectar' }[f]);
+  const powerText = t => esc(t).replace(/\[(\w+)\]/g, (m, k) => GAME_ICONS.has(k) ? gameIcon(k, ICON[k], k) : ICON[k] ? `<span title="${k}">${ICON[k]}</span>` : m);
   const NAMES = ['Black', 'White', 'Gray', 'Beige', 'Brown', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink'];
   const NAME_HEX = { Black: '#222', White: '#fff', Gray: '#999', Beige: '#e6d6bd', Brown: '#7a4e2d', Red: '#cf3b3b', Orange: '#ef8a2e', Yellow: '#f2d23c', Green: '#4f9a4a', Blue: '#3c7fd0', Purple: '#7d4fae', Pink: '#f0a3bd' };
 
@@ -264,13 +322,31 @@
   try { edits = JSON.parse(localStorage.getItem(EDITS)) || {}; } catch {}
   const save = () => { try { localStorage.setItem(EDITS, JSON.stringify(edits)); } catch {} };
   const editOf = b => edits[b.sci] ||= { removed: [], added: [] };
+  const norm100 = all => { const tot = all.reduce((s, p) => s + p.pct, 0) || 1; return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) })); };
+  // Bird colors: extracted palette, minus admin removals, plus admin-added (published) and your own added colors.
   function pal(b) {
     if (!b.art) return [];
-    const e = edits[b.sci] || {}, rm = new Set(curOf(b).removed || []);
-    const all = [...b.art.palette.filter(p => !rm.has(p.hex)), ...(e.added || []).map(hex => ({ hex, pct: 6, added: true }))];
-    const tot = all.reduce((s, p) => s + p.pct, 0) || 1;
-    return all.map(p => ({ ...p, pct: p.pct * 100 / tot, lab: lab(rgbOf(p.hex)), name: colorName(p.hex) }));
+    const o = curOf(b), e = edits[b.sci] || {}, rm = new Set(o.removed || []);
+    return norm100([...b.art.palette.filter(p => !rm.has(p.hex)), ...(o.added || []).map(hex => ({ hex, pct: 6, admin: true })),
+      ...(e.added || []).map(hex => ({ hex, pct: 6, added: true }))]);
   }
+  // Background colors (perch, plants, water...), used by the Artist's Palette. Only the admin edits these.
+  function bgPal(b) {
+    if (!b.art) return [];
+    const o = curOf(b), rm = new Set(o.bgRemoved || []);
+    return norm100([...(b.art.bgPalette || []).filter(p => !rm.has(p.hex)), ...(o.bgAdded || []).map(hex => ({ hex, pct: 6, admin: true }))]);
+  }
+
+  // ---------- Artist's Palette: a food's color appears on the bird or in its background ----------
+  const FOOD_COLORS = { Seed: ['Yellow'], Fruit: ['Red'], Rodent: ['Brown', 'Gray'], Invertebrate: ['Green'], Fish: ['Blue'], Wild: ['Black', 'White'] };
+  const FOOD_LABEL = { Seed: 'Wheat', Fruit: 'Cherry', Rodent: 'Rat', Invertebrate: 'Worm', Fish: 'Fish', Wild: 'Omnivore' };
+  function artistMatches(b) {
+    const p = pal(b), g = bgPal(b);
+    return Object.keys(b.food).filter(f => FOOD_COLORS[f]).map(f => ({
+      food: f, want: FOOD_COLORS[f], bird: p.find(c => FOOD_COLORS[f].includes(c.name)), bg: g.find(c => FOOD_COLORS[f].includes(c.name)) }));
+  }
+  const autoArtist = b => !!b.art && artistMatches(b).some(m => m.bird || m.bg);
+  const isArtist = b => curOf(b).flag ?? autoArtist(b);  // admin can force the flag on or off
   // 1 = same color, 0 = ΔE ≥ range. Only colors with the same name compare (Blue vs Blue, never Blue vs Black).
   const closeness = (a, b, range) => a.name === b.name ? Math.max(0, 1 - dE(a.lab, b.lab) / range) : 0;
   const swatches = list => `<div class="pal">${list.map(p => `<button style="background:${p.hex};flex:${p.pct}" data-hex="${p.hex}" data-label="${p.name} ${p.hex}" aria-label="${p.name} ${p.hex}"></button>`).join('')}</div>`;
@@ -315,30 +391,45 @@
       : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="pan" style="${panStyle(b)}"><img data-art="${keyOf(b)}" alt="${esc(b.name)}"><canvas hidden></canvas></div></button>`;
     return `<article class="card ${big ? 'big' : ''}">
       <div class="ctop">
-        <div class="hab"><div>${b.habitats.map(h => HAB[h]).join('')}</div><div class="food">${Object.entries(b.food).map(([f, n]) => FOOD[f].repeat(n)).join('')}</div></div>
+        <div class="hab"><div class="habs">${b.habitats.map(habIcon).join('')}</div>
+          <div class="food">${foodsInGameOrder(b).flatMap(([f, n]) => Array(n).fill(foodIcon(f))).join(`<span class="sep">${b.foodOr ? '/' : '+'}</span>`)}</div></div>
         <div class="banner"><div class="cname">${esc(b.name)}</div><div class="csci">${esc(b.sci)}</div></div>
       </div>
       <div class="cmid">
         <div class="stats"><b>${b.points}</b><span title="${esc(b.nest)} nest">${NEST[b.nest] ?? ''}</span><span class="eggs" title="egg limit">${'●'.repeat(b.eggs)}</span></div>
         ${art}
+        ${MODE === 'palette' && isArtist(b) ? `<span class="brush" title="Artist's Palette">🖌️</span>` : ''}
         <div class="ws">${b.wingspan}cm</div>
       </div>
       <div class="power ${b.color || 'none'}">${b.color ? `<b>${POWER[b.color] || ''}</b>` : ''}${b.power ? powerText(b.power) : 'No power'}</div>
       ${big ? `<div class="flavor">${esc(b.flavor)}</div>` : ''}
       ${!big && b.art ? swatches(pal(b)) : ''}
+      ${!big && b.art && MODE === 'palette' ? swatches(bgPal(b)).replace('class="pal"', 'class="pal bgpal" title="Background colors"') + foodMatchHTML(b) : ''}
       ${b.art ? `<div class="credit">Art: <a href="${esc(b.art.site)}" target="_blank" rel="noopener">${esc(b.art.artist)}</a></div>` : ''}
     </article>`;
   }
 
+  function foodMatchHTML(b) {
+    return `<div class="foodmatch">${artistMatches(b).map(m => { const hit = m.bird || m.bg;
+      return `<span class="fm ${hit ? 'hit' : ''}" title="${FOOD_LABEL[m.food]} needs ${m.want.join(' or ')}${hit ? ': found ' + (m.bird ? 'on the bird' : 'in the background') : ': no match'}">${foodIcon(m.food)}${m.want.map(n => `<i style="background:${NAME_HEX[n]}"></i>`).join('')}${hit ? '✓' : ''}</span>`; }).join('')}</div>`;
+  }
+
   // ---------- filters ----------
-  const sel = { hab: new Set(), power: new Set(), color: new Set(), food: new Set() };
-  $('filters').innerHTML = `
-    <div class="fgroup"><span>Habitat</span>${Object.entries(HAB).map(([h, e]) => `<button class="chip" data-f="hab" data-v="${h}" aria-pressed="false">${e} ${h}</button>`).join('')}</div>
-    <div class="fgroup"><span>Colors</span>${NAMES.map(n => `<button class="chip" data-f="color" data-v="${n}" aria-pressed="false"><i style="background:${NAME_HEX[n]}"></i>${n}</button>`).join('')}</div>
-    <div class="fgroup"><span>Food</span>${Object.entries(FOOD).map(([f, e]) => `<button class="chip" data-f="food" data-v="${f}" aria-pressed="false">${e} ${f}</button>`).join('')}</div>
-    <div class="fgroup"><span>Powers</span>${['brown', 'pink', 'white'].map(c => `<button class="chip p-${c}" data-f="power" data-v="${c}" aria-pressed="false">${c[0].toUpperCase() + c.slice(1)}</button>`).join('')}</div>
+  const sel = { hab: new Set(), power: new Set(), color: new Set(), food: new Set(), artist: new Set() };
+  const chip = (f, v, label) => `<button class="chip" data-f="${f}" data-v="${v}" aria-pressed="${sel[f].has(v)}">${label}</button>`;
+  function renderFilters() {
+    $('filters').innerHTML = `
+    <div class="fgroup"><span>Habitat</span>${Object.keys(HAB).map(h => chip('hab', h, `${habIcon(h)} ${h}`)).join('')}</div>
+    <div class="fgroup"><span>Colors</span>${NAMES.map(n => chip('color', n, `<i style="background:${NAME_HEX[n]}"></i>${n}`)).join('')}</div>
+    <div class="fgroup"><span>Food</span>${Object.keys(FOOD).filter(f => BIRDS.some(b => b.food[f])).map(f => chip('food', f, `${foodIcon(f)} ${f}`)).join('')}</div>
+    <div class="fgroup"><span>Powers</span>${['brown', 'pink', 'white'].map(c => chip('power', c, c[0].toUpperCase() + c.slice(1)).replace('class="chip"', `class="chip p-${c}"`)).join('')}</div>
+    ${MODE === 'palette' ? `<div class="fgroup"><span>Artist's</span>${chip('artist', 'yes', "🖌️ Artist's Palette")}${chip('artist', 'no', 'No match')}</div>` : ''}
     <div class="factions"><span class="hint">Colors: bird has every chosen color (≥5% of the bird). Other groups: any.</span>
       <span><button class="btn light" id="export">Export palettes</button> <button class="btn" id="reset">Reset</button></span></div>`;
+    $('export').onclick = exportPalettes;
+    $('reset').onclick = () => { Object.values(sel).forEach(s => s.clear()); q.value = ''; renderFilters(); render(); };
+    hydrate($('filters'));
+  }
   $('filters').addEventListener('click', e => {
     const c = e.target.closest('.chip'); if (!c) return;
     const s = sel[c.dataset.f], v = c.dataset.v;
@@ -354,13 +445,18 @@
       if (sel.food.size && !Object.keys(b.food).some(f => sel.food.has(f))) return false;
       if (sel.power.size && !sel.power.has(b.color)) return false;
       if (sel.color.size) { const names = new Set(pal(b).filter(c => c.pct >= 5).map(c => c.name)); if (![...sel.color].every(n => names.has(n))) return false; }
+      if (MODE === 'palette' && sel.artist.size && !sel.artist.has(isArtist(b) ? 'yes' : 'no')) return false;
       return true;
   }
-  const filterSummary = () => [...sel.hab, ...sel.color, ...sel.food, ...[...sel.power].map(p => p + ' power')].join(', ');
+  const filterSummary = () => [...sel.hab, ...sel.color, ...sel.food, ...[...sel.power].map(p => p + ' power'),
+    ...[...sel.artist].map(a => a === 'yes' ? "Artist's Palette" : 'no Artist\'s Palette match')].join(', ');
+  let shownList = [];
   function render() {
     const term = q.value.trim().toLowerCase();
     const list = BIRDS.map((b, i) => [b, i]).filter(([b]) => (!term || (b.name + ' ' + b.sci).toLowerCase().includes(term)) && passes(b));
+    shownList = list.map(([b]) => b).filter(b => b.art);  // what the arrows step through in the card view
     $('shown').textContent = list.length;
+    $('countnote').textContent = MODE === 'palette' ? `birds shown · 🖌️ ${list.filter(([b]) => isArtist(b)).length}` : 'birds shown';
     grid.innerHTML = list.map(([b, i]) => cardHTML(b, i)).join('');
     hydrate(grid);
   }
@@ -384,8 +480,13 @@
   function openBird(b) {
     cur = b;
     $('bigcard').innerHTML = cardHTML(b, BIRDS.indexOf(b), true);
+    hydrate($('bigcard'));
+    const at = shownList.indexOf(b);
+    $('navpos').textContent = at >= 0 ? `${at + 1} of ${shownList.length}` + (filterSummary() || q.value.trim() ? ' matching your search/filters' : '') : 'not in the current results';
     renderSide();
     $('adminpanel').hidden = !(isAdmin && authed && b.art);
+    $('artistadmin').hidden = $('addtarget').hidden = MODE !== 'palette';
+    $('flagsel').value = curOf(b).flag === undefined ? '' : curOf(b).flag ? '1' : '0';
     setMoving(false);
     syncZoom();
     if (!dlg.open) dlg.showModal();
@@ -397,7 +498,14 @@
     img.onload = () => { cv.width = img.naturalWidth; cv.height = img.naturalHeight; ctx.drawImage(img, 0, 0); };
     artURL(keyOf(b)).then(u => img.src = u);
     cv.addEventListener('mousemove', e => { if (moving) return; const hex = colorAt(e); if (hex) { $('loupe').style.background = hex; $('hover').textContent = `${colorName(hex)} ${hex} · click to add`; } });
-    cv.addEventListener('click', e => { if (moving) return; const hex = colorAt(e); if (!hex) return; editOf(cur).added.push(hex); save(); renderSide(); toast('Added ' + colorName(hex) + ' ' + hex); });
+    cv.addEventListener('click', e => {
+      if (moving) return; const hex = colorAt(e); if (!hex) return;
+      if (isAdmin) {  // admin: published for everyone, to the bird or (Artist's Palette) the background
+        const d = draftOf(cur), key = MODE === 'palette' && addTarget === 'bg' ? 'bgAdded' : 'added';
+        d[key] = [...new Set([...(d[key] || []), hex])]; saveDraft();
+      } else { editOf(cur).added.push(hex); save(); }
+      renderSide(); toast(`Added ${colorName(hex)} ${hex}` + (isAdmin && MODE === 'palette' && addTarget === 'bg' ? ' to the background' : ''));
+    });
   }
   function colorAt(e) {
     const r = cv.getBoundingClientRect(), s = Math.min(r.width / cv.width, r.height / cv.height);
@@ -406,13 +514,24 @@
     const d = ctx.getImageData(x - 1, y - 1, 3, 3).data, avg = [0, 1, 2].map(k => { let t = 0; for (let i = 0; i < 9; i++) t += d[i * 4 + k]; return Math.round(t / 9); });
     return hexOf(avg);
   }
+  const rowHTML = (c, kind) => `<div class="row" data-hex="${c.hex}" data-kind="${kind}" title="Hover: show where it is${kind === 'bird' && MODE === 'copy' ? ' · click: jump to birds with this color' : ''}">
+      <span class="sw" style="background:${c.hex}"></span><b>${c.name}</b><code data-copy="${c.hex}" title="Copy">${c.hex}</code>
+      <span class="pct">${c.admin ? 'added' : Math.round(c.pct) + '%'}</span>${isAdmin || c.added ? `<button class="x" data-del="${c.hex}" data-kind="${kind}" aria-label="Remove ${c.hex}" title="${c.added ? 'Remove the color you added' : 'Remove it for everyone (admin)'}">×</button>` : ''}</div>`;
   function renderSide() {
-    const p = pal(cur), removed = isAdmin ? curOf(cur).removed || [] : [];
-    $('rows').innerHTML = p.map(c => `<div class="row" data-hex="${c.hex}" title="Hover: show on bird · click: jump to birds with this color">
-        <span class="sw" style="background:${c.hex}"></span><b>${c.name}</b><code data-copy="${c.hex}" title="Copy">${c.hex}</code>
-        <span class="pct">${Math.round(c.pct)}%</span>${isAdmin || c.added ? `<button class="x" data-del="${c.hex}" aria-label="Remove ${c.hex}" title="${c.added ? 'Remove the color you added' : 'Not part of the bird? Remove it for everyone (admin)'}">×</button>` : ''}</div>`).join('')
-      || '<div class="empty">No colors left. Click the bird to add some.</div>';
-    $('removed').innerHTML = removed.length ? 'Removed, click to restore: ' + removed.map(hex => `<button style="background:${hex}" data-restore="${hex}" title="Restore ${colorName(hex)} ${hex}" aria-label="Restore ${hex}"></button>`).join('') : '';
+    const o = curOf(cur), restore = (list, kind, label) => list?.length ? `<div>${label}: ${list.map(hex => `<button style="background:${hex}" data-restore="${hex}" data-kind="${kind}" title="Restore ${colorName(hex)} ${hex}" aria-label="Restore ${hex}"></button>`).join('')}</div>` : '';
+    $('rows').innerHTML = pal(cur).map(c => rowHTML(c, 'bird')).join('') || '<div class="empty">No colors left. Click the bird to add some.</div>';
+    $('bgwrap').hidden = MODE !== 'palette';
+    $('bgrows').innerHTML = bgPal(cur).map(c => rowHTML(c, 'bg')).join('') || '<div class="empty">No background colors' + (isAdmin ? ': switch "Clicking the picture adds to" to Background and click the perch or plants.' : '.') + '</div>';
+    $('removed').innerHTML = isAdmin ? restore(o.removed, 'bird', 'Removed bird colors, click to restore') + (MODE === 'palette' ? restore(o.bgRemoved, 'bg', 'Removed background colors') : '') : '';
+    $('artistbox').hidden = MODE !== 'palette';
+    if (MODE === 'palette') {
+      const ms = artistMatches(cur), flagged = isArtist(cur), forced = o.flag !== undefined;
+      const got = c => `<i style="background:${c.hex}"></i> ${c.name} ${c.hex}`;
+      $('artistbox').innerHTML = `<div class="verdict">${flagged ? "🖌️ Artist's Palette" : 'No Artist\'s Palette'}<small>${forced ? 'Set by the admin' : flagged ? 'A food color appears on the bird or in its background' : 'None of its food colors appear on the bird or in its background'}</small></div>
+        ${ms.map(m => `<div class="amrow"><div class="need">${foodIcon(m.food)} ${FOOD_LABEL[m.food]} ${m.want.map(n => `<i title="${n}" style="background:${NAME_HEX[n]}"></i>`).join('')}</div>
+          <div class="got ${m.bird || m.bg ? '' : 'no'}">${m.bird ? 'Bird: ' + got(m.bird) : ''}${m.bird && m.bg ? '<br>' : ''}${m.bg ? 'Background: ' + got(m.bg) : ''}${m.bird || m.bg ? '' : `No ${m.want.join(' or ').toLowerCase()}`}</div></div>`).join('') || '<div class="hint">This bird has no food cost.</div>'}`;
+    }
+    hydrate($('artistbox'));
     renderSims();
   }
 
@@ -428,6 +547,14 @@
     }).sort((x, y) => y.score - x.score).slice(0, 10);
     const f = filterSummary();
     let html = f ? `<div class="filtnote">Only showing birds that match your filters: <b>${esc(f)}</b></div>` : '';
+    if (MODE === 'palette') {  // other Artist's Palette birds, grouped by the food whose color matched
+      html += artistMatches(cur).map(m => {
+        const hits = others.filter(({ b }) => isArtist(b)).map(({ b }) => [b, artistMatches(b).find(x => x.food === m.food && (x.bird || x.bg))]).filter(([, x]) => x);
+        return `<section class="sec"><h3>${foodIcon(m.food)} ${FOOD_LABEL[m.food]} <small>${m.want.join(' or ')} · ${hits.length} other 🖌️ bird${hits.length === 1 ? '' : 's'} eat ${FOOD_LABEL[m.food].toLowerCase()} and show its color</small></h3>
+          ${hits.length ? `<div class="strip">${hits.map(([b, x]) => tile(b, `<span class="pair"><i style="background:${(x.bird || x.bg).hex}"></i>${x.bird ? 'bird' : 'background'}</span>`)).join('')}</div>` : '<div class="empty">None.</div>'}</section>`;
+      }).join('') || '<div class="filtnote">This bird has no food cost.</div>';
+      $('sims').innerHTML = html; hydrate($('sims')); return;
+    }
     html += `<section class="sec"><h3>Most similar overall <small>left chip = ${esc(cur.name)}, right chip = the match</small></h3>
       <div class="strip">${overall.map(o => tile(o.b, o.pairs.map(([, a, c]) => pairChip(a, c)).join(''))).join('')}</div></section>`;
     // Per color: every bird with at least 1% of a color in the same family (Orange ↔ Orange), however different the shade.
@@ -446,36 +573,64 @@
     hydrate($('sims'));
   }
 
-  $('rows').addEventListener('mouseover', e => { const r = e.target.closest('.row'); if (r && authed) artURL(keyOf(cur)).then(u => drawHeat($('heatBig'), u, r.dataset.hex, 700)); });
-  $('rows').addEventListener('mouseleave', () => authed && clearHeat($('heatBig')));
-  $('rows').addEventListener('click', e => {
+  $('pbox').addEventListener('mouseover', e => { const r = e.target.closest('.row'); if (r && authed) artURL(keyOf(cur)).then(u => drawHeat($('heatBig'), u, r.dataset.hex, 700)); });
+  $('pbox').addEventListener('mouseleave', () => authed && clearHeat($('heatBig')));
+  const without = (list, hex) => (list || []).filter(h => h !== hex);
+  $('pbox').addEventListener('click', e => {
     if (e.target.dataset.copy) return copy(e.target.dataset.copy);
-    const del = e.target.dataset.del;
+    const del = e.target.dataset.del, kind = e.target.dataset.kind;
     if (del) {
       const ed = editOf(cur);
-      if (ed.added.includes(del)) { ed.added = ed.added.filter(h => h !== del); save(); }
-      else if (isAdmin) { const d = draftOf(cur); d.removed = [...new Set([...(d.removed || []), del])]; saveDraft(); }
+      if (kind === 'bird' && ed.added.includes(del)) { ed.added = without(ed.added, del); save(); }
+      else if (isAdmin) {  // an admin-added color is simply dropped; an extracted one is recorded as removed
+        const d = draftOf(cur), [add, rem] = kind === 'bg' ? ['bgAdded', 'bgRemoved'] : ['added', 'removed'];
+        if ((d[add] || []).includes(del)) d[add] = without(d[add], del); else d[rem] = [...new Set([...(d[rem] || []), del])];
+        saveDraft();
+      }
       if (authed) clearHeat($('heatBig')); return renderSide();
     }
-    const r = e.target.closest('.row'); if (r) $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const hex = e.target.dataset.restore;
+    if (hex && isAdmin) { const d = draftOf(cur), rem = e.target.dataset.kind === 'bg' ? 'bgRemoved' : 'removed'; d[rem] = without(d[rem], hex); saveDraft(); return renderSide(); }
+    const r = e.target.closest('.row'); if (r && r.dataset.kind === 'bird' && MODE === 'copy') $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
-  $('removed').addEventListener('click', e => {
-    const hex = e.target.dataset.restore; if (!hex) return;
-    if (!isAdmin) return;
-    const d = draftOf(cur); d.removed = (d.removed || []).filter(h => h !== hex); saveDraft(); renderSide();
+  let addTarget = 'bird';
+  $('addtarget').addEventListener('click', e => {
+    const t = e.target.dataset.target; if (!t) return;
+    addTarget = t; $('addtarget').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.target === t));
   });
+  $('flagsel').onchange = () => {
+    const d = draftOf(cur), v = $('flagsel').value;
+    if (v === '') delete d.flag; else d.flag = v === '1';
+    saveDraft(); $('bigcard').innerHTML = cardHTML(cur, BIRDS.indexOf(cur), true); openBird(cur);
+  };
   $('sims').addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) openBird(BIRDS.find(b => b.sci === t.dataset.sci)); });
   $('close').onclick = () => dlg.close();
+  // Previous / next bird among the grid's current results (so filters and search carry over). Wraps around.
+  function step(dir) {
+    if (!shownList.length) return;
+    const pos = BIRDS.indexOf(cur), order = b => BIRDS.indexOf(b);
+    const next = dir > 0 ? shownList.find(b => order(b) > pos) ?? shownList[0]
+                         : [...shownList].reverse().find(b => order(b) < pos) ?? shownList.at(-1);
+    if (next && next !== cur) openBird(next);
+  }
+  $('prev').onclick = () => step(-1);
+  $('next').onclick = () => step(1);
+  dlg.addEventListener('keydown', e => {
+    if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+  });
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
   dlg.addEventListener('close', render);
 
-  $('export').onclick = () => {
-    const out = BIRDS.filter(b => b.art).map(b => ({ name: b.name, sci: b.sci, colors: pal(b).map(c => ({ hex: c.hex, name: c.name, pct: Math.round(c.pct) })) }));
+  function exportPalettes() {
+    const col = c => ({ hex: c.hex, name: c.name, pct: Math.round(c.pct) });
+    const out = BIRDS.filter(b => b.art).map(b => ({ name: b.name, sci: b.sci, colors: pal(b).map(col), background: bgPal(b).map(col), artistsPalette: isArtist(b),
+      foodMatches: artistMatches(b).map(m => ({ food: FOOD_LABEL[m.food], needs: m.want, bird: m.bird?.hex || null, background: m.bg?.hex || null })) }));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
     a.download = 'wingspan-palettes.json'; a.click();
-  };
-  $('reset').onclick = () => { Object.values(sel).forEach(s => s.clear()); document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false')); q.value = ''; render(); };
+  }
   q.oninput = render;
 
   // ---------- picture position (admin): zoom slider + drag, stored in the draft overrides ----------
@@ -538,7 +693,7 @@
   const unseal = buf => crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, artKey, buf.slice(12));  // iv || ciphertext || tag
   function artURL(name) {  // decrypted image as a blob: URL, cached
     if (!artCache.has(name)) artCache.set(name, fetch(`art-enc/${name}.bin`).then(r => r.arrayBuffer()).then(unseal)
-      .then(d => URL.createObjectURL(new Blob([d], { type: 'image/jpeg' }))));
+      .then(d => URL.createObjectURL(new Blob([d], { type: name.startsWith('icon-') ? 'image/png' : 'image/jpeg' }))));
     return artCache.get(name);
   }
   // decrypt images only as they scroll into view
@@ -547,12 +702,17 @@
     io.unobserve(e.target);
     artURL(e.target.dataset.art).then(u => e.target.src = u, () => {});
   }), { rootMargin: '400px' });
-  function hydrate(root) { if (authed) root.querySelectorAll('img[data-art]:not([src])').forEach(i => io.observe(i)); }
+  function hydrate(root) {
+    if (!authed) return;
+    root.querySelectorAll('img[data-art]:not([src])').forEach(i => io.observe(i));
+    root.querySelectorAll('img[data-icon]:not([src])').forEach(i => artURL('icon-' + i.dataset.icon).then(u => i.src = u, () => {}));  // 9 small files, cached
+  }
 
   function setAuthed(v) {
     authed = v;
     $('login').hidden = v; $('loggedin').hidden = !v; $('heroimg').hidden = !v;
     if (v) artURL('scissortailedflycatcher').then(u => $('heroimg').src = u);
+    renderFilters();
     render();
   }
   async function useKey(raw) {

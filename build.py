@@ -16,12 +16,14 @@ from PIL import Image
 HABITATS = ["Forest", "Grassland", "Wetland"]
 FOODS = ["Invertebrate", "Seed", "Fish", "Fruit", "Rodent", "Nectar", "Wild (food)"]
 PROMPTS = ["a bird", "a tree branch or trunk", "berries, leaves or flowers", "handwritten signature or logo", "plain white paper",
-           "printed title text", "light blue sky background"]
+           "printed title text", "light blue sky background", "water, rocks or ground"]
+DIGITAL_ART_AREA = (120, 80, 330, 305)  # x0, y0, x1, y1 inside a digital crop: skips the card's icons, numbers and title
 _clipseg = None
 
 
-def bird_mask(img):
-    """Boolean HxW mask: pixels where CLIPSeg ranks 'a bird' above every other prompt, minus near-white paper."""
+def masks(img, area=None):
+    """(bird, background) boolean HxW masks. Bird: CLIPSeg ranks 'a bird' first. Background: it ranks a perch, foliage
+    or water/ground first. Both exclude paper and the card cream; digital crops pass `area` to stay inside the card."""
     global _clipseg
     import torch
     if _clipseg is None:  # loaded only when there is new art to process
@@ -33,7 +35,8 @@ def bird_mask(img):
     with torch.no_grad():
         logits = model(**inputs).logits  # (prompts, 352, 352)
     up = torch.nn.functional.interpolate(logits[:, None], size=img.size[::-1], mode="bilinear")[:, 0]
-    mask = (up.argmax(0) == 0) & (up[0].sigmoid() > 0.3)
+    top = up.argmax(0).numpy()
+    mask = (top == 0) & (up[0].sigmoid() > 0.3).numpy()
     px = np.asarray(img).astype(int)
     border = np.concatenate([px[:4].reshape(-1, 3), px[-4:].reshape(-1, 3), px[:, :4].reshape(-1, 3), px[:, -4:].reshape(-1, 3)])
     # background colors to drop: the border's median (white paper / screen) and the crop's most common color
@@ -41,7 +44,34 @@ def bird_mask(img):
     bins, counts = np.unique((px // 16).reshape(-1, 3), axis=0, return_counts=True)
     papers = [np.median(border, axis=0), bins[counts.argmax()] * 16 + 8]
     not_paper = np.all([np.sqrt(((px - p) ** 2).sum(axis=2)) > 40 for p in papers], axis=0)
-    return mask.numpy() & (px.min(axis=2) < 235) & not_paper
+    keep = (px.min(axis=2) < 235) & not_paper
+    # Background = whatever isn't the bird, a signature/logo or title text, clearly away from the paper/card color,
+    # not a pale gray halo, and a few pixels clear of the bird's outline. Water stays in (blue can match Fish).
+    far = np.all([np.sqrt(((px - p) ** 2).sum(axis=2)) > 60 for p in papers], axis=0)
+    pale_gray = (px.min(axis=2) > 190) & (px.max(axis=2) - px.min(axis=2) < 30)
+    near_bird = mask.copy()
+    for _ in range(4):
+        g = near_bird.copy(); g[1:] |= near_bird[:-1]; g[:-1] |= near_bird[1:]; g[:, 1:] |= near_bird[:, :-1]; g[:, :-1] |= near_bird[:, 1:]; near_bird = g
+    bg = ~near_bird & ~np.isin(top, [3, 5]) & keep & far & ~pale_gray
+    if area:
+        inside = np.zeros(bg.shape, bool); inside[area[1]:area[3], area[0]:area[2]] = True
+        bg &= inside
+    return mask & keep, bg
+
+
+def bird_mask(img):
+    return masks(img)[0]
+
+
+def bg_palette(path, area=None):
+    """Colors of the bird's surroundings (perch, berries, water...), for the Artist's Palette."""
+    img = Image.open(path).convert("RGB")
+    if area is None:
+        img.thumbnail((500, 500))  # plenty for a palette, and much faster
+    pixels = np.asarray(img)[masks(img, area)[1]]
+    if len(pixels) < 150:  # essentially no scenery
+        return []
+    return palette_from_pixels([tuple(p) for p in pixels[::max(1, len(pixels) // 40000)].tolist()])
 
 
 def palette_from_pixels(pixels, n=6):
@@ -115,10 +145,13 @@ def encrypt_art(password):
                 os.remove(os.path.join("art-enc", f))
             return encrypt_art(password)
     meta["check"] = meta.get("check") or b64(seal(b"wingspan"))
-    for f in sorted(os.listdir("art")):
-        out = "art-enc/" + f.replace(".jpg", ".bin")
-        if f.endswith(".jpg") and not os.path.exists(out):  # existing files are kept, so rebuilds don't churn git
-            open(out, "wb").write(seal(open("art/" + f, "rb").read()))
+    # card art (art/*.jpg) and the game's habitat/food icons cropped from the Steam screenshots (art/icons/*.png -> icon-*.bin)
+    files = [("art/" + f, "art-enc/" + f[:-4] + ".bin") for f in os.listdir("art") if f.endswith(".jpg")]
+    if os.path.isdir("art/icons"):
+        files += [("art/icons/" + f, "art-enc/icon-" + f[:-4] + ".bin") for f in os.listdir("art/icons") if f.endswith(".png")]
+    for src, out in sorted(files):
+        if not os.path.exists(out):  # existing files are kept, so rebuilds don't churn git
+            open(out, "wb").write(seal(open(src, "rb").read()))
     json.dump(meta, open("art-enc/meta.json", "w"))
     print(len(os.listdir("art-enc")) - 1, "encrypted images in art-enc/")
 
@@ -154,13 +187,18 @@ if __name__ == "__main__":
             "power": card["Power text"], "color": card["Color"], "eggs": int(card["Egg limit"] or 0), "flavor": card["Flavor text"],
             "habitats": [h for h in HABITATS if card[h]],
             "food": {f.replace(" (food)", ""): int(card[f]) for f in FOODS if card[f]},
+            "foodOr": bool(card["/ (food cost)"]),  # the game shows "/" (pay one of them) instead of "+"
             "art": None, "digital": None,
         }
         if norm(name) in digital:
             bird["digital"] = old_digital.get(sci) or digital_for(name, *digital[norm(name)], steam["shots"])
+            if "bgPalette" not in bird["digital"]:
+                bird["digital"]["bgPalette"] = bg_palette(bird["digital"]["image"], DIGITAL_ART_AREA)
         if norm(name) in art:
             uri, artist, site = art[norm(name)]
             bird["art"] = old.get(sci) or art_for(name, uri, artist, site)
+            if "bgPalette" not in bird["art"]:
+                bird["art"]["bgPalette"] = bg_palette(bird["art"]["image"])
         birds.append(bird)
     birds.sort(key=lambda b: b["name"])
     with open("birds.js", "w", encoding="utf-8") as f:
