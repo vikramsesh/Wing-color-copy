@@ -1,1 +1,1411 @@
-{}
+{
+ "digital": {
+  "Melanerpes formicivorus": {
+   "removed": [
+    "#252129",
+    "#504d55",
+    "#9d9999",
+    "#c5c0bd",
+    "#dc9e81",
+    "#912c35"
+   ],
+   "added": [
+    "#c13c47"
+   ],
+   "bgRemoved": [
+    "#cdae7a",
+    "#a69885",
+    "#927e58",
+    "#715747",
+    "#483023"
+   ],
+   "bgAdded": [
+    "#b53845"
+   ]
+  }
+ },
+ "art": {
+  "Melanerpes formicivorus": {
+   "removed": [
+    "#28242c",
+    "#4f4c56",
+    "#dddbdd",
+    "#9a979d",
+    "#e19f7a"
+   ],
+   "bgRemoved": [
+    "#e1c38c",
+    "#a69b8d",
+    "#655d5d",
+    "#a18e67",
+    "#383334"
+   ],
+   "bgAdded": [
+    "#a52539",
+    "#ebeabd"
+   ],
+   "added": [
+    "#2d2730",
+    "#e3e3e5",
+    "#edeed9",
+    "#f4f1d2"
+   ]
+  },
+  "Recurvirostra americana": {
+   "removed": [
+    "#e7dbcf",
+    "#f8bf8d",
+    "#111112",
+    "#a9a4a1",
+    "#5b595a",
+    "#688a99"
+   ],
+   "bgRemoved": [
+    "#cdc9be",
+    "#abb0af",
+    "#efcfa8",
+    "#161616",
+    "#5e5d5d",
+    "#7d9cad"
+   ],
+   "added": [
+    "#fdc58e"
+   ],
+   "bgAdded": [
+    "#e2e6e5",
+    "#a4a5a5"
+   ]
+  },
+  "Botaurus lentiginosus": {
+   "removed": [
+    "#9f9281",
+    "#d5cbb7",
+    "#c2a775",
+    "#44322a",
+    "#151320"
+   ],
+   "bgRemoved": [
+    "#a0a591",
+    "#c7cdaf",
+    "#b4c56d",
+    "#6c7d4a",
+    "#9a975c",
+    "#434f29"
+   ],
+   "bgAdded": [
+    "#829c60"
+   ],
+   "added": [
+    "#b5ad55"
+   ]
+  },
+  "Fulica americana": {
+   "removed": [
+    "#93959a",
+    "#5d5f65",
+    "#0e121b",
+    "#cecccd",
+    "#772732"
+   ],
+   "bgRemoved": [],
+   "added": [
+    "#030509",
+    "#f6ebdf",
+    "#5d5b60"
+   ]
+  },
+  "Corvus brachyrhynchos": {
+   "removed": [
+    "#29222b",
+    "#4c444f",
+    "#96939a",
+    "#84813d",
+    "#d8d6d2",
+    "#c4c26a"
+   ],
+   "bgAdded": [
+    "#2f2833",
+    "#66646c"
+   ],
+   "bgRemoved": [
+    "#87843e",
+    "#615e63",
+    "#989690",
+    "#dfdeb0",
+    "#433e1a"
+   ],
+   "added": [
+    "#4c4816",
+    "#1f1d24"
+   ],
+   "view": {
+    "x": 0,
+    "y": 0,
+    "z": 1
+   }
+  },
+  "Spinus tristis": {
+   "removed": [
+    "#292529",
+    "#e0ddd4",
+    "#524e52",
+    "#a09b9c",
+    "#80723c"
+   ],
+   "added": [
+    "#4a3e27"
+   ],
+   "bgRemoved": [
+    "#d3d965",
+    "#d1c3ab"
+   ]
+  },
+  "Falco sparverius": {
+   "removed": [
+    "#95949b",
+    "#dbd3c8",
+    "#5a575e",
+    "#27252d"
+   ],
+   "added": [
+    "#a25749",
+    "#f0e0ad"
+   ]
+  },
+  "Haematopus palliatus": {
+   "removed": [
+    "#51464b",
+    "#e4dfd8",
+    "#372f35",
+    "#9c908d"
+   ],
+   "added": [
+    "#5f4239",
+    "#373037",
+    "#383138",
+    "#1a1a1a"
+   ],
+   "bgRemoved": [
+    "#d7dcae",
+    "#a0aa8a"
+   ]
+  },
+  "Turdus migratorius": {
+   "removed": [
+    "#9d9ca2",
+    "#54545c",
+    "#282830",
+    "#cbc9cc"
+   ],
+   "added": [
+    "#fdf842",
+    "#26262e",
+    "#dddce1"
+   ],
+   "bgRemoved": [
+    "#615559",
+    "#c9aeac"
+   ]
+  },
+  "Pelecanus erythrorhynchos": {
+   "removed": [
+    "#e0d9d8",
+    "#a49d9f",
+    "#655d60",
+    "#8e713e",
+    "#2f2a30"
+   ],
+   "added": [
+    "#f5c618"
+   ]
+  },
+  "Scolopax minor": {
+   "removed": [
+    "#ce9a7d",
+    "#845745",
+    "#a28e8b",
+    "#d4bdb6",
+    "#442b24",
+    "#0b0910"
+   ],
+   "bgRemoved": [
+    "#ceb8b5"
+   ],
+   "added": [
+    "#f2d23c",
+    "#7a4e2d"
+   ]
+  },
+  "Anhinga anhinga": {
+   "removed": [
+    "#57545a",
+    "#958f91",
+    "#2d181b",
+    "#d9d6d7",
+    "#0a080f"
+   ],
+   "added": [
+    "#3d2828",
+    "#3b8381"
+   ],
+   "bgRemoved": [
+    "#f9bf57",
+    "#524f55",
+    "#9f9a9d",
+    "#e9d9b9"
+   ],
+   "bgAdded": [
+    "#502f33"
+   ]
+  },
+  "Calypte anna": {
+   "bgAdded": [],
+   "added": [
+    "#ef4db4",
+    "#11ef68",
+    "#553536",
+    "#cf3b3b"
+   ],
+   "removed": [
+    "#dbd7cb",
+    "#e12498",
+    "#a1938e",
+    "#635353"
+   ]
+  },
+  "Myiarchus cinerascens": {
+   "removed": [
+    "#e1d7ca",
+    "#a3968f",
+    "#32160f",
+    "#c1805a",
+    "#645b5a"
+   ],
+   "added": [
+    "#f4edbe"
+   ],
+   "bgRemoved": [
+    "#a29489",
+    "#69615d",
+    "#c9b7a6"
+   ]
+  },
+  "Fratercula arctica": {
+   "removed": [
+    "#2c272e",
+    "#4f4a53",
+    "#d8d3d4",
+    "#9f9a9e",
+    "#834f43"
+   ],
+   "added": [
+    "#ca4a38",
+    "#f2d23c"
+   ],
+   "bgRemoved": [
+    "#696567"
+   ]
+  },
+  "Setophaga ruticilla": {
+   "added": [
+    "#ef8a2e",
+    "#f2d23c"
+   ]
+  },
+  "Ammodramus bairdii": {
+   "removed": [
+    "#e2d3c8",
+    "#d4a487",
+    "#a4948c",
+    "#3b1c13",
+    "#0b0d12"
+   ],
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Haliaeetus leucocephalus": {
+   "removed": [
+    "#594d4f",
+    "#2a2327",
+    "#9c8f8b",
+    "#ddd6ce"
+   ]
+  },
+  "Icterus galbula": {
+   "removed": [
+    "#1c1a1d",
+    "#9f9e9d",
+    "#d9d4cc",
+    "#595759",
+    "#7f431d"
+   ],
+   "added": [
+    "#f7ba00"
+   ],
+   "bgAdded": [
+    "#4f9a4a"
+   ]
+  },
+  "Tyto alba": {
+   "removed": [
+    "#dbcec7",
+    "#a69791",
+    "#d0a080",
+    "#010103",
+    "#341c15"
+   ],
+   "bgRemoved": [
+    "#845b55"
+   ]
+  },
+  "Hirundo rustica": {
+   "removed": [
+    "#1a2338",
+    "#979794"
+   ],
+   "added": [
+    "#f2d23c"
+   ],
+   "bgRemoved": [
+    "#6d7b4c"
+   ]
+  },
+  "Strix varia": {
+   "removed": [
+    "#ddcbbd",
+    "#be987d",
+    "#361b11",
+    "#130709",
+    "#5e3c3d"
+   ],
+   "added": [
+    "#d7ad2b"
+   ]
+  },
+  "Bucephala islandica": {
+   "added": [
+    "#7d4fae",
+    "#4f9a4a"
+   ],
+   "removed": [
+    "#4b4853",
+    "#2f2c34",
+    "#dbdbe1",
+    "#9698a1",
+    "#2c3c6a"
+   ]
+  },
+  "Vireo bellii": {
+   "removed": [
+    "#e0dcc8",
+    "#a59d94",
+    "#5e5757",
+    "#2d262a",
+    "#8e8159"
+   ],
+   "added": [
+    "#7e655a"
+   ],
+   "bgRemoved": [
+    "#4b5e39"
+   ]
+  },
+  "Megaceryle alcyon": {
+   "removed": [
+    "#dad8d3",
+    "#969b99",
+    "#192f42",
+    "#836535"
+   ],
+   "added": [
+    "#f2d23c"
+   ],
+   "bgAdded": [
+    "#181818"
+   ]
+  },
+  "Thryomanes bewickii": {
+   "removed": [
+    "#d8cfcf",
+    "#a29796",
+    "#60565a",
+    "#94725b",
+    "#2f282f"
+   ],
+   "bgRemoved": [
+    "#5e5559",
+    "#2d272f",
+    "#bbc06d",
+    "#847f51"
+   ],
+   "bgAdded": [
+    "#4f9a4a"
+   ]
+  },
+  "Rynchops niger": {
+   "removed": [
+    "#e2ddda",
+    "#1f1e23",
+    "#aaa4a1",
+    "#515053",
+    "#85493b"
+   ]
+  },
+  "Chlidonias niger": {
+   "bgAdded": [],
+   "added": [
+    "#566c83"
+   ],
+   "removed": [
+    "#53555e"
+   ]
+  },
+  "Coragyps atratus": {
+   "removed": [
+    "#c7a486",
+    "#937462"
+   ]
+  },
+  "Dendrocygna autumnalis": {
+   "removed": [
+    "#c2836c",
+    "#242329",
+    "#dbc2bb",
+    "#a79b99"
+   ],
+   "added": [
+    "#ea3449"
+   ]
+  },
+  "Pica hudsonia": {
+   "removed": [
+    "#524f5d",
+    "#d6d7dc",
+    "#95959e",
+    "#4d7bb8"
+   ],
+   "added": [
+    "#f8f8fa",
+    "#7a4e2d"
+   ],
+   "bgRemoved": [
+    "#667448"
+   ]
+  },
+  "Archilochus alexandri": {
+   "added": [
+    "#4f9a4a",
+    "#7d4fae",
+    "#1a1a1a"
+   ]
+  },
+  "Nycticorax nycticorax": {
+   "added": [
+    "#cf3b3b",
+    "#f2d23c",
+    "#4f9a4a"
+   ]
+  },
+  "Himantopus mexicanus": {
+   "removed": [
+    "#4c4c55",
+    "#dedcde"
+   ],
+   "added": [
+    "#eceaeb",
+    "#7e202c"
+   ],
+   "bgRemoved": [
+    "#605d60",
+    "#2b2b31",
+    "#91b19c"
+   ]
+  },
+  "Passerina caerulea": {
+   "removed": [
+    "#2f4382",
+    "#864733"
+   ],
+   "added": [
+    "#bc6837",
+    "#793126"
+   ]
+  },
+  "Vermivora cyanoptera": {
+   "removed": [
+    "#7c6e30"
+   ],
+   "added": [
+    "#8d99b0"
+   ]
+  },
+  "Dolichonyx oryzivorus": {
+   "removed": [
+    "#d3bc88",
+    "#556b80"
+   ],
+   "added": [
+    "#ede0b2"
+   ]
+  },
+  "Branta bernicla": {
+   "added": [
+    "#7a4e2d",
+    "#1a1a1a"
+   ]
+  },
+  "Euphagus cyanocephalus": {
+   "removed": [
+    "#262c41"
+   ],
+   "added": [
+    "#425b79",
+    "#342853"
+   ]
+  },
+  "Buteo platypterus": {
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Molothrus aeneus": {
+   "removed": [
+    "#262327"
+   ],
+   "added": [
+    "#1a181c",
+    "#bf9ca1"
+   ]
+  },
+  "Molothrus ater": {
+   "bgRemoved": [
+    "#8d5465",
+    "#3f4e2d"
+   ]
+  },
+  "Pelecanus occidentalis": {
+   "removed": [
+    "#c67457"
+   ],
+   "added": [
+    "#d8443c",
+    "#e5d5a0",
+    "#7a4e2d"
+   ]
+  },
+  "Athene cunicularia": {
+   "added": [
+    "#d8bb60"
+   ]
+  },
+  "Psaltriparus minimus": {
+   "removed": [
+    "#dad195"
+   ],
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Gymnogyps californianus": {
+   "removed": [
+    "#d0b178"
+   ]
+  },
+  "Setophaga coronata": {
+   "removed": [
+    "#8d8749"
+   ],
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Xanthocephalus xanthocephalus": {
+   "removed": [
+    "#926543"
+   ]
+  },
+  "Icteria virens": {
+   "bgRemoved": [
+    "#7892b1"
+   ]
+  },
+  "Coccyzus americanus": {
+   "removed": [
+    "#391812",
+    "#efb13a"
+   ],
+   "added": [
+    "#f2d23c"
+   ],
+   "bgRemoved": [
+    "#e9c9b2",
+    "#dcaf93"
+   ]
+  },
+  "Sphyrapicus varius": {
+   "added": [
+    "#f3f1bd"
+   ]
+  },
+  "Mycteria americana": {
+   "added": [
+    "#765442"
+   ]
+  },
+  "Aix sponsa": {
+   "removed": [
+    "#d3ba84"
+   ],
+   "added": [
+    "#e8e148",
+    "#4f643d",
+    "#273550",
+    "#765170",
+    "#8a7062"
+   ]
+  },
+  "Gallinago delicata": {
+   "removed": [
+    "#d19b77",
+    "#341710",
+    "#a48b83",
+    "#e8c395"
+   ]
+  },
+  "Tringa semipalmata": {
+   "removed": [
+    "#d7c082"
+   ],
+   "bgRemoved": [
+    "#53643b"
+   ]
+  },
+  "Meleagris gallopavo": {
+   "added": [
+    "#c53d5f",
+    "#94cde3"
+   ],
+   "removed": [
+    "#d9a37f"
+   ]
+  },
+  "Grus americana": {
+   "removed": [
+    "#3e1e23"
+   ]
+  },
+  "Aeronautes saxatalis": {
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Plegadis chihi": {
+   "added": [
+    "#ef8a2e",
+    "#4f9a4a",
+    "#34998c",
+    "#7d4fae",
+    "#bba0ae"
+   ],
+   "removed": [
+    "#36130e"
+   ]
+  },
+  "Zonotrichia leucophrys": {
+   "removed": [
+    "#d78458"
+   ]
+  },
+  "Sitta carolinensis": {
+   "removed": [
+    "#7c6b51"
+   ]
+  },
+  "Piranga ludoviciana": {
+   "added": [
+    "#c93637"
+   ],
+   "bgRemoved": [
+    "#59653d"
+   ]
+  },
+  "Sturnella neglecta": {
+   "bgRemoved": [
+    "#a0ab70"
+   ]
+  },
+  "Tachycineta thalassina": {
+   "added": [
+    "#47644a"
+   ],
+   "removed": [
+    "#787345"
+   ]
+  },
+  "Chaetura vauxi": {
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Cathartes aura": {
+   "removed": [
+    "#8a425e",
+    "#bf6a8b"
+   ],
+   "added": [
+    "#cf3b3b",
+    "#7a4e2d"
+   ]
+  },
+  "Baeolophus bicolor": {
+   "removed": [
+    "#ec967c",
+    "#814f44"
+   ],
+   "added": [
+    "#371410"
+   ]
+  },
+  "Cygnus buccinator": {
+   "removed": [
+    "#784d47",
+    "#523f3a"
+   ],
+   "added": [
+    "#f0a3bd"
+   ]
+  },
+  "Anthus spragueii": {
+   "removed": [
+    "#609247"
+   ]
+  },
+  "Pipilo maculatus": {
+   "added": [
+    "#d07667"
+   ]
+  },
+  "Actitis macularius": {
+   "removed": [
+    "#cc9067"
+   ]
+  },
+  "Strix occidentalis": {
+   "removed": [
+    "#d8cab3",
+    "#846755",
+    "#cbb187"
+   ]
+  },
+  "Melospiza melodia": {
+   "removed": [
+    "#ce9f7d",
+    "#87573a"
+   ],
+   "added": [
+    "#763424"
+   ]
+  },
+  "Egretta thula": {
+   "removed": [
+    "#917733"
+   ],
+   "added": [
+    "#ef8a2e"
+   ]
+  },
+  "Tyrannus forficatus": {
+   "removed": [
+    "#855f52"
+   ],
+   "added": [
+    "#cf3b3b"
+   ]
+  },
+  "Callipepla squamata": {
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Sayornis saya": {
+   "removed": [
+    "#cf8c7a"
+   ],
+   "added": [
+    "#f0a3bd"
+   ]
+  },
+  "Antigone canadensis": {
+   "removed": [
+    "#cc9668",
+    "#d4b383"
+   ],
+   "added": [
+    "#cf3b3b",
+    "#f2d23c"
+   ]
+  },
+  "Oxyura jamaicensis": {
+   "added": [
+    "#4c3141"
+   ],
+   "removed": [
+    "#c37f66"
+   ],
+   "bgAdded": [
+    "#73865b"
+   ]
+  },
+  "Archilochus colubris": {
+   "added": [
+    "#e73335",
+    "#aac45c",
+    "#383f44",
+    "#2a2d31"
+   ],
+   "bgRemoved": [
+    "#67b4cf"
+   ]
+  },
+  "Regulus calendula": {
+   "added": [
+    "#f2d23c",
+    "#4f9a4a",
+    "#7a4e2d"
+   ]
+  },
+  "Platalea ajaja": {
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Larus delawarensis": {
+   "removed": [
+    "#856f32"
+   ]
+  },
+  "Agelaius phoeniceus": {
+   "added": [
+    "#fbce26"
+   ]
+  },
+  "Buteo jamaicensis": {
+   "added": [
+    "#3c7fd0",
+    "#a53724"
+   ],
+   "removed": [
+    "#c07253",
+    "#d6b68a"
+   ],
+   "bgRemoved": [
+    "#8b5160"
+   ]
+  },
+  "Buteo lineatus": {
+   "added": [
+    "#a44434",
+    "#f8f05d"
+   ]
+  },
+  "Melanerpes erythrocephalus": {
+   "added": [
+    "#242e3d"
+   ],
+   "bgRemoved": [
+    "#3e4d2c"
+   ]
+  },
+  "Vireo olivaceus": {
+   "added": [
+    "#620d14",
+    "#d5c866",
+    "#4f9a4a"
+   ],
+   "removed": [
+    "#352c14",
+    "#c7b575"
+   ]
+  },
+  "Loxia curvirostra": {
+   "added": [
+    "#411210",
+    "#f2d23c"
+   ]
+  },
+  "Picoides borealis": {
+   "added": [
+    "#793d39"
+   ]
+  },
+  "Sitta canadensis": {
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Mergus serrator": {
+   "added": [
+    "#cf3b3b",
+    "#4f9a4a"
+   ]
+  },
+  "Melanerpes carolinus": {
+   "added": [
+    "#f2d23c",
+    "#5785b4"
+   ]
+  },
+  "Callipepla californica": {
+   "removed": [
+    "#cb9d67"
+   ]
+  },
+  "Aythya valisineria": {
+   "added": [
+    "#cf3b3b",
+    "#7a4e2d",
+    "#1a1a1a"
+   ]
+  },
+  "Poecile carolinensis": {
+   "removed": [
+    "#ebc5a2"
+   ],
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Thryothorus ludovicianus": {
+   "removed": [
+    "#894a34",
+    "#35130d"
+   ],
+   "bgRemoved": [
+    "#233b28"
+   ]
+  },
+  "Haemorhous cassinii": {
+   "added": [
+    "#5b3131"
+   ]
+  },
+  "Peucaea cassinii": {
+   "removed": [
+    "#d5b78f"
+   ]
+  },
+  "Bombycilla cedrorum": {
+   "added": [
+    "#e30608",
+    "#fcd244",
+    "#809ba7"
+   ],
+   "removed": [
+    "#ecb742"
+   ]
+  },
+  "Calcarius ornatus": {
+   "added": [
+    "#f2d23c"
+   ],
+   "removed": [
+    "#cc8752"
+   ],
+   "bgRemoved": [
+    "#57683e",
+    "#38472d",
+    "#643544",
+    "#371c26"
+   ]
+  },
+  "Corvus cryptoleucus": {
+   "added": [
+    "#4f586e",
+    "#7a4e2d"
+   ]
+  },
+  "Spizella passerina": {
+   "removed": [
+    "#c2836a"
+   ],
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Aechmophorus clarkii": {
+   "added": [
+    "#82363f",
+    "#fed863"
+   ],
+   "removed": [
+    "#e3b155",
+    "#927342"
+   ]
+  },
+  "Nucifraga columbiana": {
+   "removed": [
+    "#b2c172",
+    "#85904b",
+    "#aebd6f",
+    "#899450"
+   ],
+   "bgAdded": [
+    "#91a43b"
+   ]
+  },
+  "Quiscalus quiscula": {
+   "bgAdded": [],
+   "added": [
+    "#40222e",
+    "#7a4e2d",
+    "#cf3b3b"
+   ]
+  },
+  "Gavia immer": {
+   "added": [
+    "#840b17",
+    "#483f58",
+    "#7a4e2d"
+   ]
+  },
+  "Mergus merganser": {
+   "added": [
+    "#49593e"
+   ],
+   "removed": [
+    "#576a8b"
+   ]
+  },
+  "Corvus corax": {
+   "added": [
+    "#41516b"
+   ]
+  },
+  "Geothlypis trichas": {
+   "added": [
+    "#f2d23c",
+    "#4f9a4a"
+   ]
+  },
+  "Accipiter cooperii": {
+   "removed": [
+    "#e5b95f"
+   ],
+   "added": [
+    "#5e0c09",
+    "#fcd635"
+   ]
+  },
+  "Junco hyemalis": {
+   "removed": [
+    "#dea58e"
+   ]
+  },
+  "Phalacrocorax auritus": {
+   "added": [
+    "#f8d44f"
+   ]
+  },
+  "Picoides pubescens": {
+   "added": [
+    "#8baccc"
+   ],
+   "removed": [
+    "#c08772"
+   ]
+  },
+  "Sialia sialis": {
+   "added": [],
+   "bgRemoved": [
+    "#7e5a54",
+    "#a0817c",
+    "#8ad1ee"
+   ]
+  },
+  "Sayornis phoebe": {
+   "added": [
+    "#271714",
+    "#311e18"
+   ],
+   "removed": [
+    "#7b9dad"
+   ]
+  },
+  "Megascops asio": {
+   "added": [
+    "#b7b571"
+   ]
+  },
+  "Buteo regalis": {
+   "added": [
+    "#852a1e",
+    "#9cabbb",
+    "#e8bd2c"
+   ]
+  },
+  "Corvus ossifragus": {
+   "added": [
+    "#334259"
+   ]
+  },
+  "Sterna forsteri": {
+   "removed": [
+    "#c55937"
+   ]
+  },
+  "Aquila chrysaetos": {
+   "added": [
+    "#3c7fd0"
+   ]
+  },
+  "Dumetella carolinensis": {
+   "removed": [
+    "#ea2e4d",
+    "#cd9f76"
+   ]
+  },
+  "Ardea herodias": {
+   "added": [
+    "#3c7fd0",
+    "#4f9a4a"
+   ]
+  },
+  "Myiarchus crinitus": {
+   "removed": [
+    "#31120d",
+    "#ce8c62"
+   ]
+  },
+  "Ardea alba": {
+   "added": [
+    "#abbf22",
+    "#4f9a4a"
+   ],
+   "removed": [
+    "#e4a527"
+   ]
+  },
+  "Tympanuchus cupido": {
+   "added": [
+    "#ab3146",
+    "#66594b"
+   ]
+  },
+  "Geococcyx californianus": {
+   "added": [
+    "#3d6587"
+   ]
+  },
+  "Bubo virginianus": {
+   "added": [
+    "#8c4c46",
+    "#eeda39"
+   ]
+  },
+  "Butorides virescens": {
+   "added": [
+    "#cdc569",
+    "#4a745e",
+    "#3c7fd0"
+   ],
+   "removed": [
+    "#d8bc6c"
+   ]
+  },
+  "Catharus guttatus": {
+   "removed": [
+    "#d9bb95"
+   ]
+  },
+  "Setophaga citrina": {
+   "added": [
+    "#4f9a4a"
+   ],
+   "removed": [
+    "#dcceb8"
+   ]
+  },
+  "Eremophila alpestris": {
+   "added": [
+    "#9d7165"
+   ]
+  },
+  "Haemorhous mexicanus": {
+   "added": [
+    "#cbbdb3"
+   ]
+  },
+  "Troglodytes aedon": {
+   "removed": [
+    "#34130f"
+   ]
+  },
+  "Columbina inca": {
+   "removed": [
+    "#c21c48",
+    "#7b1d37"
+   ],
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Passerina cyanea": {
+   "added": [
+    "#7d4fae"
+   ]
+  },
+  "Rallus elegans": {
+   "removed": [
+    "#d2b284"
+   ]
+  },
+  "Passerina amoena": {
+   "removed": [
+    "#ebc790",
+    "#dea87a"
+   ],
+   "added": [
+    "#f8efc3"
+   ],
+   "bgAdded": [
+    "#fdf3cf"
+   ]
+  },
+  "Melospiza lincolnii": {
+   "bgAdded": [],
+   "added": [
+    "#f2d23c"
+   ]
+  },
+  "Anas platyrhynchos": {
+   "added": [
+    "#daba94",
+    "#365e4c",
+    "#786153",
+    "#e08d53"
+   ]
+  },
+  "Ictinia mississippiensis": {
+   "removed": [
+    "#c8c163"
+   ],
+   "added": [
+    "#7a4e2d"
+   ]
+  },
+  "Zenaida macroura": {
+   "removed": [
+    "#d5ac8e"
+   ],
+   "bgRemoved": [
+    "#c85660"
+   ]
+  },
+  "Cardinalis cardinalis": {
+   "removed": [
+    "#225477"
+   ]
+  },
+  "Colaptes auratus": {
+   "added": [
+    "#761a1a"
+   ],
+   "removed": [
+    "#88834e",
+    "#bfb967"
+   ],
+   "bgRemoved": [
+    "#918f61"
+   ],
+   "bgAdded": [
+    "#a7a461"
+   ]
+  },
+  "Circus hudsonius": {
+   "removed": [
+    "#d0ae5b"
+   ],
+   "bgAdded": [],
+   "added": [
+    "#e3e650"
+   ]
+  },
+  "Mimus polyglottos": {
+   "removed": [
+    "#c6b387"
+   ]
+  },
+  "Spatula clypeata": {
+   "added": [
+    "#f2d23c",
+    "#729865",
+    "#6382a6"
+   ],
+   "removed": [
+    "#973927"
+   ]
+  },
+  "Pandion haliaetus": {
+   "added": [
+    "#7a4e2d"
+   ],
+   "removed": [
+    "#804457",
+    "#bc6c88"
+   ],
+   "bgAdded": [
+    "#903f5f",
+    "#b56e88"
+   ]
+  },
+  "Passerina ciris": {
+   "added": [
+    "#c9b507"
+   ]
+  },
+  "Myioborus pictus": {
+   "added": [
+    "#cf3b3b"
+   ]
+  },
+  "Falco peregrinus": {
+   "added": [
+    "#f2d23c",
+    "#3c7fd0",
+    "#7a4e2d"
+   ],
+   "removed": [
+    "#cc8f60"
+   ]
+  },
+  "Dryocopus pileatus": {
+   "added": [
+    "#643e35"
+   ],
+   "bgAdded": [
+    "#465037"
+   ]
+  },
+  "Spinus pinus": {
+   "bgAdded": [],
+   "added": [
+    "#b9a39b"
+   ]
+  },
+  "Porphyrio martinicus": {
+   "added": [
+    "#cb4f49",
+    "#f4eb9e"
+   ],
+   "bgRemoved": [
+    "#dfcc54"
+   ]
+  },
+  "Progne subis": {
+   "added": [
+    "#7a4e2d"
+   ]
+  }
+ }
+}
