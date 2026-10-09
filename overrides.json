@@ -126,7 +126,9 @@
     "#d8d6d2",
     "#c4c26a"
    ],
-   "bgAdded": [],
+   "bgAdded": [
+    "#4f9a4a"
+   ],
    "bgRemoved": [
     "#87843e",
     "#615e63",
