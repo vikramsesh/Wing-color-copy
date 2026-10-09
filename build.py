@@ -305,6 +305,11 @@ if __name__ == "__main__":
     birds.sort(key=lambda b: b["name"])
     with open("birds.js", "w", encoding="utf-8") as f:
         f.write("const BIRDS = " + json.dumps(birds, ensure_ascii=False) + ";\n")
+    # stamp index.html's <script src="birds.js?v=..."> with the data's hash, so browsers fetch new data right away
+    import hashlib
+    v = hashlib.sha256(open("birds.js", "rb").read()).hexdigest()[:10]
+    page = open("index.html", encoding="utf-8").read()
+    open("index.html", "w", encoding="utf-8").write(re.sub(r'<script src="birds\.js(\?v=\w+)?">', f'<script src="birds.js?v={v}">', page))
     print(len(birds), "birds,", sum(1 for b in birds if b["art"]), "with card art,", sum(1 for b in birds if b["digital"]), "with digital art")
     if os.environ.get("WINGSPAN_PASSWORD"):
         encrypt_art(os.environ["WINGSPAN_PASSWORD"])

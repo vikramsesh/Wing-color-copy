@@ -80,10 +80,11 @@
   .stats .vp .gi { height: 30px; }
   .stats .nest .gi { height: 30px; }
   .beak { display: flex; gap: 1px; }
-  .beakico { width: 30px; height: 22px; display: block; }
-  .chip .beakico { width: 22px; height: 16px; }
-  .beak:has(.beakico + .beakico) .beakico { width: 20px; height: 15px; }  /* both ways (Common Loon) */
-  .big .beakico { width: 42px; height: 30px; }
+  .beakico { width: 30px; height: 30px; display: block; }
+  .chip .beakico { width: 18px; height: 18px; }
+  .beak:has(.beakico + .beakico) .beakico { width: 19px; height: 19px; }  /* both ways (Common Loon) */
+  .big .beakico { width: 42px; height: 42px; }
+  .big .beak:has(.beakico + .beakico) .beakico { width: 27px; height: 27px; }
   .cmid .eggs { position: absolute; left: 10px; bottom: 2px; display: flex; gap: 3px; color: #9c907c; font-size: 11px; letter-spacing: -2px; }
   .cmid .eggs .gi { height: 13px; }
   .frame { position: relative; flex: 1; border: 0; padding: 0; background: none; cursor: zoom-in; min-width: 0; }
@@ -199,10 +200,12 @@
   /* select birds + running totals */
   .card { position: relative; }
   .card.picked { outline: 3px solid var(--brown); outline-offset: -3px; }
-  .pick { position: absolute; top: 4px; left: 56px; z-index: 3; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #9c907c; background: #fff; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; color: #fff; display: grid; place-items: center; opacity: .75; }
-  .pick:hover { opacity: 1; }
-  .pick[aria-pressed="true"] { background: var(--brown); border-color: var(--brown); opacity: 1; }
-  .big .pick { width: 32px; height: 32px; font-size: 18px; left: 74px; }
+  .pick { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: #ece6d8; color: #6b6253; cursor: pointer; font-size: 12px; font-weight: 600; padding: 4px 8px; text-align: left; letter-spacing: .02em; }
+  .pick::before { content: '☐ '; }
+  .pick:hover { background: #e3dac6; }
+  .pick[aria-pressed="true"] { background: var(--brown); color: #fff; border-bottom-color: var(--brown); }
+  .pick[aria-pressed="true"]::before { content: '☑ '; }
+  .big .pick { font-size: 15px; padding: 6px 12px; }
   .tally { position: fixed; top: 12px; right: 12px; z-index: 20; background: var(--paper); border-radius: 8px; box-shadow: 0 4px 18px rgb(0 40 50 / .3); padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 190px; }
   .tally .tl { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
   .tally .num { font: 700 28px/1 var(--hand); color: var(--brown); display: inline-flex; align-items: center; gap: 2px; }
@@ -278,6 +281,8 @@
           <div class="loupe"><span id="loupe"></span><span id="hover">Click the bird to add a color</span></div>
           <div class="removed" id="removed"></div>
           <div class="admin" id="adminpanel" hidden>
+            <h4>Beak direction</h4>
+            <div class="ctl"><select id="beaksel" aria-label="Beak direction"></select></div>
             <div id="artistadmin"><h4>Artist's Palette flag</h4>
               <div class="ctl"><select id="flagsel" aria-label="Artist's Palette flag"><option value="">Automatic (from the food colors)</option><option value="1">Always flag 🖌️</option><option value="0">Never flag</option></select></div></div>
             <h4>Add a color</h4>
@@ -301,7 +306,7 @@
 </dialog>
 <div id="toast" role="status"></div>
 
-<script src="birds.js"></script>
+<script src="birds.js?v=4173dfca81"></script>
 <script>
   const $ = id => document.getElementById(id);
   // Two image sets, same features: the artists' originals (default) or the digital edition's cards (?set=digital).
@@ -322,16 +327,17 @@
   const FOOD = { Invertebrate: '🐛', Seed: '🌱', Fish: '🐟', Fruit: '🍒', Rodent: '🐭', Nectar: '🌸', Wild: '✳️' };
   const NEST = { bowl: '◡', cavity: '◉', ground: '▬', platform: '☰', wild: '★', none: '–' };
   // Beak direction from the card data: L, R, N (neither, facing forward = Center) or LR (both ways, e.g. the Common Loon)
-  // Beak icons (drawn here, in the nest badges' color): a head in profile with the beak pointing left or right,
-  // or a head facing you with the beak pointing down for Center.
+  // Round badge in the nest badges' colors: a cream bird head with the beak pointing left/right, or facing you (center).
+  const PROFILE = '<circle cx="12.5" cy="15" r="6.5" fill="#efe6cf"/><path d="M18 12.2 L26 15 L18 17.8 Z" fill="#efe6cf"/><circle cx="14" cy="13" r="1.3" fill="#8b8270"/>';
   const BEAK_SVG = {
-    Right: '<circle cx="11" cy="11" r="7"/><path d="M16.5 8.6 L28 11 L16.5 13.4 Z"/><circle cx="12.6" cy="9" r="1.3" fill="#efe6cf"/>',
-    Left: '<g transform="matrix(-1 0 0 1 30 0)"><circle cx="11" cy="11" r="7"/><path d="M16.5 8.6 L28 11 L16.5 13.4 Z"/><circle cx="12.6" cy="9" r="1.3" fill="#efe6cf"/></g>',
-    Center: '<circle cx="15" cy="10" r="7.5"/><path d="M12.4 13 L17.6 13 L15 21 Z"/><circle cx="12.3" cy="8.6" r="1.2" fill="#efe6cf"/><circle cx="17.7" cy="8.6" r="1.2" fill="#efe6cf"/>',
+    Right: PROFILE,
+    Left: `<g transform="matrix(-1 0 0 1 30 0)">${PROFILE}</g>`,
+    Center: '<circle cx="15" cy="13.5" r="7.5" fill="#efe6cf"/><path d="M12.4 16 L17.6 16 L15 23.5 Z" fill="#6a6150"/><circle cx="12.4" cy="12" r="1.3" fill="#8b8270"/><circle cx="17.6" cy="12" r="1.3" fill="#8b8270"/>',
   };
-  const beakIcon = d => `<svg class="beakico" viewBox="0 0 30 22" fill="#8b8270" role="img" aria-label="Beak ${d.toLowerCase()}"><title>Beak ${d.toLowerCase()}</title>${BEAK_SVG[d]}</svg>`;
+  const beakIcon = d => `<svg class="beakico" viewBox="0 0 30 30" role="img" aria-label="Beak ${d.toLowerCase()}"><title>Beak ${d.toLowerCase()}</title><circle cx="15" cy="15" r="15" fill="#8b8270"/>${BEAK_SVG[d]}</svg>`;
   const BEAK = Object.fromEntries(['Left', 'Right', 'Center'].map(d => [d, beakIcon(d)]));
-  const beakDirs = b => ({ L: ['Left'], R: ['Right'], N: ['Center'], LR: ['Left', 'Right'] })[b.beak] || [];
+  const beakCode = b => curOf(b).beak ?? b.beak;  // the admin's correction, if any, else the card data
+  const beakDirs = b => ({ L: ['Left'], R: ['Right'], N: ['Center'], LR: ['Left', 'Right'] })[beakCode(b)] || [];
   const beakBadge = b => beakDirs(b).length ? `<div class="beak" title="Beak: ${beakDirs(b).join(' and ').toLowerCase()}">${beakDirs(b).map(d => BEAK[d]).join('')}</div>` : '';  // the Loon shows both
   const POWER = { brown: 'When activated:', white: 'When played:', pink: 'Once between turns:' };
   const ICON = { card: '🃏', egg: '🥚', die: '🎲', predator: '🦅', forest: '🌲', grassland: '🌾', wetland: '💧', ...Object.fromEntries(Object.entries(FOOD).map(([k, v]) => [k.toLowerCase(), v])), ...NEST };
@@ -504,6 +510,7 @@
       : big ? `<div class="stage" id="stage"><div class="pan" id="bigpan" style="${panStyle(b)}"><canvas id="cv" aria-label="Click the bird to add a color"></canvas>${cutKey(b) ? `<img class="cut" data-art="${cutKey(b)}" data-cut alt="">` : ''}<canvas id="heatBig" hidden></canvas></div></div>`
       : `<button class="frame" data-i="${i}" aria-label="Open ${esc(b.name)}"><div class="pan" style="${panStyle(b)}"><img class="base" data-art="${keyOf(b)}" alt="${esc(b.name)}">${cutKey(b) ? `<img class="cut" data-art="${cutKey(b)}" data-cut alt="">` : ''}<canvas hidden></canvas></div></button>`;
     return `<article class="card ${big ? 'big' : ''} ${picked.has(b.sci) ? 'picked' : ''}" data-sci="${esc(b.sci)}">
+      <button class="pick" data-pick="${esc(b.sci)}" aria-pressed="${picked.has(b.sci)}" aria-label="Select ${esc(b.name)} for the totals">${picked.has(b.sci) ? 'Selected' : 'Select'}</button>
 
       <div class="ctop">
         <div class="hab"><div class="habs">${b.habitats.map(habIcon).join('')}</div>
@@ -516,7 +523,6 @@
           ${beakBadge(b)}</div>
         <div class="eggs" title="Egg limit: ${b.eggs}">${Array(b.eggs).fill(gameIcon('egg', '●', 'Egg')).join('')}</div>
         ${art}
-        <button class="pick" data-pick="${esc(b.sci)}" aria-pressed="${picked.has(b.sci)}" aria-label="Select ${esc(b.name)}" title="Select for the totals">✓</button>
         ${MODE === 'palette' && isArtist(b) ? `<span class="brush" title="Artist's Palette: ${artistPoints(b)} points">🖌️<b>${artistPoints(b)}</b></span>` : ''}
         <div class="ws">${b.wingspan}cm</div>
       </div>
@@ -536,6 +542,13 @@
 
   // ---------- filters ----------
   const sel = { hab: new Set(), power: new Set(), color: new Set(), food: new Set(), beak: new Set(), artist: new Set() };
+  const wsFilter = { op: 'lt', cm: null };  // wingspan in cm: less than / greater than
+  $('filters').addEventListener('input', e => {
+    if (e.target.id === 'wsop') wsFilter.op = e.target.value;
+    else if (e.target.id === 'wsval') wsFilter.cm = e.target.value === '' || isNaN(+e.target.value) ? null : +e.target.value;
+    else return;
+    render();
+  });
   // Selected birds (remembered in this browser) and their totals, shown top right.
   let picked = new Set(), onlyPicked = false;
   try { picked = new Set(JSON.parse(localStorage.getItem('picked')) || []); } catch {}
@@ -544,7 +557,7 @@
     try { localStorage.setItem('picked', JSON.stringify([...picked])); } catch {}
     document.querySelectorAll(`.card[data-sci="${CSS.escape(sci)}"]`).forEach(c => {
       c.classList.toggle('picked', picked.has(sci));
-      c.querySelector('.pick').setAttribute('aria-pressed', picked.has(sci));
+      const pk = c.querySelector('.pick'); pk.setAttribute('aria-pressed', picked.has(sci)); pk.textContent = picked.has(sci) ? 'Selected' : 'Select';
     });
     if (onlyPicked) render(); else showTally();
   }
@@ -589,13 +602,15 @@
     <div class="fgroup"><span>Habitat</span>${Object.keys(HAB).map(h => chip('hab', h, `${habIcon(h)} ${h}`)).join('')}</div>
     <div class="fgroup"><span>Colors</span>${FILTER_COLORS.map(n => chip('color', n, `<i style="background:${NAME_HEX[n]}"></i>${n}`)).join('')}</div>
     <div class="fgroup"><span>Food</span>${FOOD_ORDER.filter(f => BIRDS.some(b => b.food[f])).map(f => chip('food', f, `${foodIcon(f)} ${FOOD_LABEL[f]}`)).join('')}</div>
+    <div class="fgroup"><span>Wingspan</span><select id="wsop" aria-label="Wingspan comparison"><option value="lt"${wsFilter.op === 'lt' ? ' selected' : ''}>less than</option><option value="gt"${wsFilter.op === 'gt' ? ' selected' : ''}>greater than</option></select>
+      <input id="wsval" type="number" min="0" step="1" inputmode="numeric" placeholder="cm" aria-label="Wingspan in cm" value="${wsFilter.cm ?? ''}" style="width:80px"> cm</div>
     <div class="fgroup"><span>Beak</span>${Object.entries(BEAK).map(([d, g]) => chip('beak', d, `${g.replace(/<title>.*?<\/title>/, '').replace('role="img"', 'aria-hidden="true"')} ${d}`)).join('')}</div>
     <div class="fgroup"><span>Powers</span>${['brown', 'pink', 'white'].map(c => chip('power', c, c[0].toUpperCase() + c.slice(1)).replace('class="chip"', `class="chip p-${c}"`)).join('')}</div>
     ${MODE === 'palette' ? `<div class="fgroup"><span>Artist's</span>${chip('artist', 'yes', "🖌️ Artist's Palette")}${chip('artist', 'no', 'No match')}</div>` : ''}
     <div class="factions"><span class="hint">Colors: the bird itself (not its background) has every chosen color, covering ≥5% of the bird. Other groups: any.</span>
       <span><button class="btn light" id="export">Export palettes</button> <button class="btn" id="reset">Reset</button></span></div>`;
     $('export').onclick = exportPalettes;
-    $('reset').onclick = () => { onlyPicked = false; $('tonly').checked = false; Object.values(sel).forEach(s => s.clear()); q.value = ''; renderFilters(); render(); };
+    $('reset').onclick = () => { wsFilter.cm = null; onlyPicked = false; $('tonly').checked = false; Object.values(sel).forEach(s => s.clear()); q.value = ''; renderFilters(); render(); };
     hydrate($('filters'));
   }
   $('filters').addEventListener('click', e => {
@@ -613,13 +628,14 @@
       if (sel.food.size && !Object.keys(b.food).some(f => sel.food.has(f))) return false;
       if (sel.power.size && !sel.power.has(b.color)) return false;
       if (sel.beak.size && !beakDirs(b).some(d => sel.beak.has(d))) return false;
+      if (wsFilter.cm != null && !(wsFilter.op === 'lt' ? b.wingspan < wsFilter.cm : b.wingspan > wsFilter.cm)) return false;
       if (sel.color.size) { const names = new Set(pal(b).filter(c => c.pct >= 5).map(c => c.name)); if (![...sel.color].every(n => names.has(n))) return false; }
       if (MODE === 'palette' && sel.artist.size && !sel.artist.has(isArtist(b) ? 'yes' : 'no')) return false;
       if (onlyPicked && !picked.has(b.sci)) return false;
       return true;
   }
   const FILTER_COLORS = NAMES.filter(n => !['White', 'Gray', 'Black'].includes(n));
-  const filterSummary = () => [...sel.hab, ...sel.color, ...[...sel.food].map(f => FOOD_LABEL[f] || f), ...[...sel.power].map(p => p + ' power'), ...[...sel.beak].map(d => 'beak ' + d.toLowerCase()),
+  const filterSummary = () => [...sel.hab, ...sel.color, ...[...sel.food].map(f => FOOD_LABEL[f] || f), ...[...sel.power].map(p => p + ' power'), ...[...sel.beak].map(d => 'beak ' + d.toLowerCase()), ...(wsFilter.cm != null ? [`wingspan ${wsFilter.op === 'lt' ? '<' : '>'} ${wsFilter.cm} cm`] : []),
     ...[...sel.artist].map(a => a === 'yes' ? "Artist's Palette" : 'no Artist\'s Palette match')].join(', ');
   let shownList = [];
   function render() {
@@ -663,6 +679,9 @@
     $('colorin').value = ''; $('colorin').oninput();
     $('artistadmin').hidden = $('addtarget').hidden = MODE !== 'palette';
     $('flagsel').value = curOf(b).flag === undefined ? '' : curOf(b).flag ? '1' : '0';
+    const dataBeak = ({ L: 'Left', R: 'Right', N: 'Center', LR: 'Left and right' })[b.beak] || 'unknown';
+    $('beaksel').innerHTML = `<option value="">From the card data (${dataBeak})</option>` + [['L', 'Left'], ['R', 'Right'], ['N', 'Center'], ['LR', 'Left and right']].map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    $('beaksel').value = curOf(b).beak ?? '';
     setMoving(false);
     syncZoom();
     if (!dlg.open) { dlg.append($('tally')); dlg.showModal(); }  // keep the totals visible above the card view
@@ -797,6 +816,11 @@
     const t = e.target.dataset.target; if (!t) return;
     addTarget = t; $('addtarget').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.target === t));
   });
+  $('beaksel').onchange = () => {
+    const d = draftOf(cur), v = $('beaksel').value;
+    if (v === '') delete d.beak; else d.beak = v;
+    saveDraft(); openBird(cur);
+  };
   $('flagsel').onchange = () => {
     const d = draftOf(cur), v = $('flagsel').value;
     if (v === '') delete d.flag; else d.flag = v === '1';
