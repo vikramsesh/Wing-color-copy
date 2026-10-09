@@ -562,7 +562,7 @@
     const d = ctx.getImageData(x - 1, y - 1, 3, 3).data, avg = [0, 1, 2, 3].map(k => { let t = 0; for (let i = 0; i < 9; i++) t += d[i * 4 + k]; return Math.round(t / 9); });
     return avg[3] < 128 ? null : hexOf(avg.slice(0, 3));  // nothing to pick on a transparent spot
   }
-  const rowHTML = (c, kind) => `<div class="row" data-hex="${c.hex}" data-kind="${kind}" title="Hover: show where it is${kind === 'bird' && MODE === 'copy' ? ' · click: jump to birds with this color' : ''}">
+  const rowHTML = (c, kind) => `<div class="row" data-hex="${c.hex}" data-kind="${kind}" title="Hover: show where it is${kind === 'bird' && PRIMARY.includes(c.name) ? ' · click: jump to birds with this color' : ''}">
       <span class="sw" style="background:${c.hex}"></span><b>${c.name}</b><code data-copy="${c.hex}" title="Copy">${c.hex}</code>
       <span class="pct">${c.admin ? 'added' : Math.round(c.pct) + '%'}</span>${isAdmin || c.added ? `<button class="x" data-del="${c.hex}" data-kind="${kind}" aria-label="Remove ${c.hex}" title="${c.added ? 'Remove the color you added' : 'Remove it for everyone (admin)'}">×</button>` : ''}</div>`;
   function renderSide() {
@@ -585,27 +585,22 @@
     renderSims();
   }
 
-  // Similar birds, one section per comparison so it's clear which color matched.
+  // Similar birds by the bird's own primary colors (not background; White, Gray and Black don't count),
+  // one section per color so it's clear which color matched.
+  const PRIMARY = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Brown'];
   function renderSims() {
-    const mine = pal(cur), others = BIRDS.filter(b => b !== cur && passes(b)).map(b => ({ b, p: pal(b) })).filter(o => o.p.length || bgPal(o.b).length);
+    const mine = pal(cur).filter(c => PRIMARY.includes(c.name)), others = BIRDS.filter(b => b !== cur && passes(b)).map(b => ({ b, p: pal(b) })).filter(o => o.p.length || bgPal(o.b).length);
     const tile = (b, match) => `<button class="tile" data-sci="${esc(b.sci)}">${!b.art ? '<div class="locked">no card art</div>' : authed ? `<div class="tframe"><div class="pan" style="${panStyle(b)}"><img class="base" data-art="${keyOf(b)}" alt="">${cutKey(b) ? `<img class="cut" data-art="${cutKey(b)}" data-cut alt="">` : ''}</div></div>` : '<div class="locked">🔒</div>'}<div class="tn">${esc(b.name)}</div><div class="match">${match}</div></button>`;
     const pairChip = (a, c) => `<span class="pair" title="${a.name} ${a.hex} ↔ ${c.name} ${c.hex}"><i style="background:${a.hex}"></i><i style="background:${c.hex}"></i>${c.name}</span>`;
     // Overall: shared coverage summed over every color pair; each tile lists the pairs that matched most.
-    const overall = others.map(({ b, p }) => {
+    const overall = others.map(({ b, p }) => {  // (only colors with the same name pair up, so these are primaries too)
       const pairs = mine.flatMap(a => p.map(c => [Math.min(a.pct, c.pct) * closeness(a, c, 25), a, c])).filter(x => x[0] > 0).sort((x, y) => y[0] - x[0]);
       return { b, score: pairs.reduce((s, x) => s + x[0], 0), pairs: pairs.slice(0, 3) };
-    }).sort((x, y) => y.score - x.score).slice(0, 10);
+    }).filter(o => o.score > 0).sort((x, y) => y.score - x.score).slice(0, 10);
     const f = filterSummary();
     let html = f ? `<div class="filtnote">Only showing birds that match your filters: <b>${esc(f)}</b></div>` : '';
-    if (MODE === 'palette') {  // other Artist's Palette birds, grouped by the food whose color matched
-      html += artistMatches(cur).map(m => {
-        const hits = others.filter(({ b }) => isArtist(b)).map(({ b }) => [b, artistMatches(b).find(x => x.food === m.food && (x.bird || x.bg))]).filter(([, x]) => x);
-        return `<section class="sec"><h3>${foodIcon(m.food)} ${FOOD_LABEL[m.food]} <small>${m.want.join(' or ')} · ${hits.length} other 🖌️ bird${hits.length === 1 ? '' : 's'} eat ${FOOD_LABEL[m.food].toLowerCase()} and show its color</small></h3>
-          ${hits.length ? `<div class="strip">${hits.map(([b, x]) => tile(b, `<span class="pair"><i style="background:${(x.bird || x.bg).hex}"></i>${x.bird ? 'bird' : 'background'}</span>`)).join('')}</div>` : '<div class="empty">None.</div>'}</section>`;
-      }).join('') || '<div class="filtnote">This bird has no food cost.</div>';
-      $('sims').innerHTML = html; hydrate($('sims')); return;
-    }
-    html += `<section class="sec"><h3>Most similar overall <small>left chip = ${esc(cur.name)}, right chip = the match</small></h3>
+    if (!mine.length) html += `<div class="filtnote">${esc(cur.name)} has no Red, Orange, Yellow, Green, Blue, Purple, Pink or Brown to compare.</div>`;
+    if (overall.length) html += `<section class="sec"><h3>Most similar overall <small>by Red, Orange, Yellow, Green, Blue, Purple, Pink and Brown · left chip = ${esc(cur.name)}, right chip = the match</small></h3>
       <div class="strip">${overall.map(o => tile(o.b, o.pairs.map(([, a, c]) => pairChip(a, c)).join(''))).join('')}</div></section>`;
     // Per color: every bird with at least 1% of a color in the same family (Orange ↔ Orange), however different the shade.
     // Order: closest shade and most coverage first.
@@ -641,7 +636,7 @@
     }
     const hex = e.target.dataset.restore;
     if (hex && isAdmin) { const d = draftOf(cur), rem = e.target.dataset.kind === 'bg' ? 'bgRemoved' : 'removed'; d[rem] = without(d[rem], hex); saveDraft(); return renderSide(); }
-    const r = e.target.closest('.row'); if (r && r.dataset.kind === 'bird' && MODE === 'copy') $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const r = e.target.closest('.row'); if (r && r.dataset.kind === 'bird') $('sec-' + r.dataset.hex.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   let addTarget = 'bird';
   const toBackground = () => MODE === 'palette' && addTarget === 'bg';
